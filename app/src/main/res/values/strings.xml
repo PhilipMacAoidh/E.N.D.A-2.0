@@ -1,0 +1,80 @@
+<resources>
+    <!--Values for SignIn-->
+    <string name="login_title">Login</string>
+    <string name="login_button">Login</string>
+    <string name="forgot_password">Forgot your password?</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="min_password">Password too short, enter minimum 6 characters!</string>
+    <string name="login_to_register_btn">Not a member? Get registered now!</string>
+    <string name="failed_login">Login failed, check your email and password or sign up</string>
+
+    <!--Values for Registration-->
+    <string name="register_title">Registration</string>
+    <string name="register_button">Register</string>
+    <string name="username_hint">Username</string>
+    <string name="failed_register">Registration failed, check your email and password or sign up</string>
+    <string name="registration_to_login_btn">Already registered. Login now!</string>
+
+    <!--values for Reset Password-->
+    <string name="forgot_password_mssg">We just need your registered Email Id to send your password reset instructions.</string>
+    <string name="reset_btn">Reset Password</string>
+    <string name="btn_back"><![CDATA[<< Back]]></string>
+
+    <!--Values for MainActivity-->
+    <string name="app_name">Project Enda</string>
+    <string name="profile_button">Profile Button</string>
+
+    <!--Values for Challenge Fragment-->
+    <string name="challenge_title">CHALLENGE</string>
+    <string name="challenge_image_url">https://res.cloudinary.com/teepublic/image/private/s--3_UGVhYN--/t_Preview/b_rgb:191920,c_limit,f_jpg,h_630,q_90,w_630/v1466107758/production/designs/547814_1.jpg</string>
+    <string name="challenge_help_text">I found the sticker, now what?</string>
+    <string name="nfc_hint">Scan Tag For Code</string>
+    <string name="tag_detected">NFC Tag Detected!</string>
+    <string name="scanning_instructions">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</string>
+
+    <!--Values for Map Fragment-->
+    <string name="map_title">MAP</string>
+
+    <!--Values for Profile Activity-->
+    <string name="profile_title">Profile</string>
+    <string name="add_friend_btn">Add Friend Button</string>
+    <string name="settings_btn">Settings Button</string>
+    <string name="profile_picture">Profile Picture</string>
+    <string name="profile_picture_url">https://pbs.twimg.com/media/CisrAJbWkAAatYw.jpg</string>
+    <string name="chat_btn">CHAT</string>
+    <string name="points"> points</string>
+
+    <!--Values for AddFriends-->
+    <string name="search_hint">Type Username Here</string>
+
+    <!--Values for Settings-->
+    <string name="setting_title">Settings</string>
+    <string name="change_pp_text">Change Profile Picture</string>
+    <string-array name="distance_options">
+        <item>1 KM</item>
+        <item>2 KM</item>
+        <item>3 KM</item>
+        <item>5 KM</item>
+        <item>10 KM</item>
+        <item>15 KM</item>
+        <item>20 KM</item>
+        <item>25 KM</item>
+    </string-array>
+    <string name="distance_tag">Max. Challenge Distance</string>
+    <string name="change_username_hint">New Username</string>
+    <string name="save_btn">Save Settings</string>
+    <string name="save_toast_text">Changes Saved!</string>
+    <string name="sign_out">Sign Out</string>
+
+    <!--Values for Leaderboard Activity-->
+    <string name="leaderboard_title">Leaderboards</string>
+    <string name="friend_leaderboard_title">FRIENDS</string>
+    <string name="national_leaderboard_title">NATIONAL</string>
+    <string name="world_leaderboard_title">WORLDWIDE</string>
+    <string name="title_activity_sign_up">SignUp</string>
+    <string name="title_activity_reset_password">ResetPassword</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

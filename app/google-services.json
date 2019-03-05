@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "572706619759",
+    "firebase_url": "https://project-enda.firebaseio.com",
+    "project_id": "project-enda",
+    "storage_bucket": "project-enda.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572706619759:android:21158d1ecdb20cba",
+        "android_client_info": {
+          "package_name": "com.nuig.philip.projectenda"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "572706619759-6at3h2lg7347r5s8vobgq524o88hguo1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9zkUtN9B-gBGwxTePN4paXDuqD68SNuE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
