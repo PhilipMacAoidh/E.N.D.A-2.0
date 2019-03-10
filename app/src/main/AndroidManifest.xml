@@ -18,7 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyAnBvLo8jSf9Mkli38_gEnKWJbDffB37wA"/>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAnBvLo8jSf9Mkli38_gEnKWJbDffB37wA" />
 
         <activity
             android:name=".Login.SignIn"
@@ -44,9 +46,10 @@
         <activity
             android:name=".Leaderboards.Leaderboards"
             android:screenOrientation="portrait" />
-        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+        <activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Base.Theme.AppCompat"/>
+            android:theme="@style/Base.Theme.AppCompat" />
     </application>
 
 </manifest>
