@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,14 +16,12 @@ import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.nuig.philip.projectenda.Leaderboards.Leaderboards;
 import com.nuig.philip.projectenda.R;
-import com.nuig.philip.projectenda.Tasks.Animations;
 import com.nuig.philip.projectenda.Tasks.HistoryLoader;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Locations;
@@ -36,11 +33,9 @@ import java.util.Date;
 
 public class Profile extends AppCompatActivity {
 
-    //todo change history cards to Animated fade-in list
-    //todo Custom Light dialog to places history for additional information
-    //todo add map bottom sheet when image of location selected
+    //todo add map to back of the card
+    //todo make the text font customizable
     //todo pull refresh progress bar
-    //todo change profile to card header
 
     private Toolbar toolbar;
     private InternetConnection broadcastReceiver;
@@ -53,6 +48,7 @@ public class Profile extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        final Bundle sIS = savedInstanceState;
 
         toolbar = findViewById(R.id.profileToolbar);
         setSupportActionBar(toolbar);
@@ -78,7 +74,6 @@ public class Profile extends AppCompatActivity {
                 goto_add_friends(v);
             }
         });
-
 
         TextView profileName = findViewById(R.id.nameText);
         profileName.setText(user.getDisplayName());
@@ -136,7 +131,7 @@ public class Profile extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView parent, View view, int position, long id) {
                 Dialog dialog = new Dialog(Profile.this);
-                dialog.setContentView(locationsAdapter.getDialog(position, (ViewGroup) view.findViewById(R.id.cardView), dialog.getWindow().getDecorView()));
+                dialog.setContentView(locationsAdapter.getDialog(position, (ViewGroup) view.findViewById(R.id.cardView), dialog.getWindow().getDecorView(), sIS));
                 WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
                 layoutParams.copyFrom(dialog.getWindow().getAttributes());
                 layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
