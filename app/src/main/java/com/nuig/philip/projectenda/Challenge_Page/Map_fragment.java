@@ -1,12 +1,15 @@
 package com.nuig.philip.projectenda.Challenge_Page;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -33,17 +36,17 @@ import com.nuig.philip.projectenda.Tasks.Toasts;
 
 public class Map_fragment extends Fragment {//implements OnMapReadyCallback {
 
-    //todo setup Google Maps
-
     MapView mMapView;
     private GoogleMap googleMap;
     private LatLng currentLocation, destLocation;
     private View rootView = null;
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 //        initializeMap();
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
+        checkLocationPermission();
 
         mMapView = (MapView) rootView.findViewById(R.id.map);
         mMapView.onCreate(savedInstanceState);
@@ -55,6 +58,13 @@ public class Map_fragment extends Fragment {//implements OnMapReadyCallback {
             e.printStackTrace();
         }
 
+        return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mMapView.onResume();
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap mMap) {
@@ -109,14 +119,6 @@ public class Map_fragment extends Fragment {//implements OnMapReadyCallback {
                 });
             }
         });
-
-        return rootView;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mMapView.onResume();
     }
 
     @Override
@@ -135,6 +137,15 @@ public class Map_fragment extends Fragment {//implements OnMapReadyCallback {
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
+    }
+
+    public boolean checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public void setDestination(LatLng point) {
