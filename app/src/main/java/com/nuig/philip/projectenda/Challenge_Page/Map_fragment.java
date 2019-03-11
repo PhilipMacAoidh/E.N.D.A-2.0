@@ -34,7 +34,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.nuig.philip.projectenda.R;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 
-public class Map_fragment extends Fragment {//implements OnMapReadyCallback {
+public class Map_fragment extends Fragment {
 
     MapView mMapView;
     private GoogleMap googleMap;
