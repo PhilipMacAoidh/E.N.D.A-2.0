@@ -17,23 +17,14 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.nfc.NfcAdapter;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.nuig.philip.projectenda.Login.SignIn;
 import com.nuig.philip.projectenda.Profile.Profile;
 import com.nuig.philip.projectenda.R;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
-import com.nuig.philip.projectenda.Tasks.Toasts;
 
 import java.util.ArrayList;
 import java.util.List;
