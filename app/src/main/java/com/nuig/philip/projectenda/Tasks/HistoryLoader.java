@@ -3,6 +3,8 @@ package com.nuig.philip.projectenda.Tasks;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
@@ -19,7 +21,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.nuig.philip.projectenda.R;
 
@@ -102,10 +103,9 @@ public class HistoryLoader extends BaseAdapter {
 
         final LinearLayout backCard = cardView.findViewById(R.id.backCard);
         final MapView mMapView = (MapView) cardView.findViewById(R.id.infoMap);
-        final Double latitude, logitude;
         final TextView locationInfoName = cardView. findViewById(R.id.locationInfoName);
         final TextView synopsis = cardView.findViewById(R.id.synopsis);
-//        final Button wikiBtn = cardView.findViewById(R.id.wikiBtn);
+        final TextView wikiBtn = cardView.findViewById(R.id.urlBtn);
 
         ViewGroup.MarginLayoutParams cardParams = (ViewGroup.MarginLayoutParams) locationCard.getLayoutParams();
         cardParams.setMargins(0, 0, 0, 0);
@@ -128,9 +128,8 @@ public class HistoryLoader extends BaseAdapter {
              public void onMapReady(GoogleMap mMap) {
                  MarkerOptions markerObject = new MarkerOptions().position(new LatLng(loc.getLatitude(), loc.getLongitude()));
                  googleMap = mMap;
-                 googleMap.setMinZoomPreference(15);
                  googleMap.getUiSettings().setAllGesturesEnabled(false);
-                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getLatitude(), loc.getLongitude()), 15));
+                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getLatitude(), loc.getLongitude()), 16));
                  googleMap.addMarker(markerObject);
                  googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                      public void onMapClick(LatLng point) {
@@ -159,6 +158,15 @@ public class HistoryLoader extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 cardFlipAnimation(dialogView, frontCard, backCard);
+            }
+        });
+
+        wikiBtn.setText(loc.getWiki().substring(0, Math.min(loc.getWiki().length(), 46)) + "....");
+        wikiBtn.setOnClickListener( new View.OnClickListener()
+        {
+            public void onClick(View v){
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(loc.getWiki()));
+                Context.startActivity(browserIntent);
             }
         });
 
