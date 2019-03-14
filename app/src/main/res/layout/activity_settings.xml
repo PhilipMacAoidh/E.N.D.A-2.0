@@ -81,6 +81,12 @@
                     android:textColor="@color/common_google_signin_btn_text_dark_focused"
                     android:textColorHint="@android:color/white" />
             </android.support.design.widget.TextInputLayout>
+
+            <Spinner
+                android:id="@+id/distanceSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp" />
         </LinearLayout>
 
     </RelativeLayout>
