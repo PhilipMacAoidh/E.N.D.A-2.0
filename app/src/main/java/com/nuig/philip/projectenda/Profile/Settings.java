@@ -15,6 +15,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,6 +31,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -50,13 +54,16 @@ public class Settings extends AppCompatActivity {
     private Toolbar toolbar;
     private Uri filePath;
     private ImageView changePPBtn;
-    private boolean photoChanged = false, usernameChanged = false;
+    private boolean photoChanged = false, usernameChanged = false, distanceChanged = false, firstRun = true, secondRun = true;
     private FirebaseUser user;
     private FirebaseStorage storage;
     private StorageReference storageReference, ref;
     private InternetConnection broadcastReceiver;
     private Button actionBtn;
     private EditText inputUsername;
+    private Spinner dropdown;
+    private DocumentReference userDoc;
+    private int newDistance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,14 +76,87 @@ public class Settings extends AppCompatActivity {
         getSupportActionBar().setTitle(getString(R.string.setting_title));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        userDoc = database.collection("users").document(user.getUid());
 
         changePPBtn = findViewById(R.id.changePPBtn);
         inputUsername = (EditText) findViewById(R.id.username);
         inputUsername.addTextChangedListener(usernameFilter);
+        dropdown = findViewById(R.id.distanceSpinner);
 
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.distance_options));
+        dropdown.setAdapter(adapter);
+        userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        switch(Math.round((long) document.getData().get("distance"))) {
+                            case 1: dropdown.setSelection(0); break;
+                            case 2: dropdown.setSelection(1); break;
+                            case 3: dropdown.setSelection(2); break;
+                            case 5: dropdown.setSelection(3); break;
+                            case 10: dropdown.setSelection(4); break;
+                            case 15: dropdown.setSelection(5); break;
+                            case 20: dropdown.setSelection(6); break;
+                            case 25: dropdown.setSelection(7); break;
+                        }
+                        Log.i("data-base", "Old selection set");
+                    } else {
+                        Log.d("data-base", "No such document");
+                    }
+                } else {
+                    Log.d("data-base", "get failed with ", task.getException());
+                }
+            }
+        });
+        dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(!firstRun) {
+                    Log.i("data-base", "Item Selected#");
+                    switch (position) {
+                        case 0:
+                            newDistance = 1;
+                            break;
+                        case 1:
+                            newDistance = 2;
+                            break;
+                        case 2:
+                            newDistance = 3;
+                            break;
+                        case 3:
+                            newDistance = 5;
+                            break;
+                        case 4:
+                            newDistance = 10;
+                            break;
+                        case 5:
+                            newDistance = 15;
+                            break;
+                        case 6:
+                            newDistance = 20;
+                            break;
+                        case 7:
+                            newDistance = 25;
+                            break;
+                    }
+                    if (!secondRun) {
+                        distanceChanged = true;
+                        switchToSave();
+                        Log.i("data-base", "Item Selected@");
+                    }
+                    secondRun = false;
+                } firstRun = false;
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         try {
             Glide.with(this).load(user.getPhotoUrl().toString()).into(changePPBtn);
@@ -111,14 +191,17 @@ public class Settings extends AppCompatActivity {
                             .setDisplayName(inputUsername.getText().toString())
                             .build());
                 }
-                if (!usernameChanged && !photoChanged) {
+                if(distanceChanged) {
+                    userDoc.update("distance", newDistance);
+                    Log.i("data-base", "updated");
+                }
+                if (!usernameChanged && !photoChanged && !distanceChanged) {
                     MainActivity.signOut();
                     Toasts.successToast("Goodbye", Settings.this, Toast.LENGTH_SHORT);
                 }
-
-                if(photoChanged || usernameChanged) {
+                if(photoChanged || usernameChanged || distanceChanged) {
                     Toasts.successToast(getString(R.string.save_toast_text), Settings.this, Toast.LENGTH_SHORT);
-                    photoChanged = false; usernameChanged = false;
+                    photoChanged = false; usernameChanged = false; distanceChanged = false;
                     switchToSignOut();
                 }
             }
@@ -140,7 +223,7 @@ public class Settings extends AppCompatActivity {
         broadcastReceiver = new InternetConnection(this, (ImageView) findViewById(R.id.profilePicture), getString(R.string.profile_picture_url));
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-        registerReceiver(broadcastReceiver, filter);;
+        registerReceiver(broadcastReceiver, filter);
     }
 
     @Override

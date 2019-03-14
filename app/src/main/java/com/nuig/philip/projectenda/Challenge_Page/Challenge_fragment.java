@@ -24,6 +24,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -43,16 +44,16 @@ public class Challenge_fragment extends DialogFragment {
     public static View view;
     private Button challengeHelpBtn;
     private boolean helpOpen = false;
-    private FirebaseAuth auth;
+    private FirebaseUser auth;
     private FirebaseFirestore database;
-    private  InternetConnection broadcastReceiver;
+    private InternetConnection broadcastReceiver;
     private String challengeImgUrl, challengeNum;
     private DocumentReference userDoc, challengeDoc;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_challenge, container, false);
-        auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance().getCurrentUser();
         refreshDocuments();
 
         view.findViewById(R.id.challenge_help).setOnClickListener(new View.OnClickListener() {
@@ -79,7 +80,7 @@ public class Challenge_fragment extends DialogFragment {
 
     public void refreshDocuments(){
         database = FirebaseFirestore.getInstance();
-        userDoc = database.collection("users").document(auth.getCurrentUser().getUid());
+        userDoc = database.collection("users").document(auth.getUid());
         userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {

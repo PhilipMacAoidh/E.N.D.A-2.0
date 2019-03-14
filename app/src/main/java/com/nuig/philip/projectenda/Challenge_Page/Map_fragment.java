@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -17,8 +18,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
@@ -31,6 +34,15 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.nuig.philip.projectenda.R;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 
@@ -41,12 +53,22 @@ public class Map_fragment extends Fragment {
     private LatLng currentLocation, destLocation;
     private View rootView = null;
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private FirebaseUser user;
+    private FirebaseStorage storage;
+    private DocumentReference userDoc;
+    private long searchDistance;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 //        initializeMap();
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
         checkLocationPermission();
+
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
+        storage = FirebaseStorage.getInstance();
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        userDoc = database.collection("users").document(user.getUid());
 
         mMapView = (MapView) rootView.findViewById(R.id.map);
         mMapView.onCreate(savedInstanceState);
@@ -64,6 +86,22 @@ public class Map_fragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        searchDistance = (long) document.getData().get("distance");
+                    } else {
+                        Log.d("data-base", "No such document");
+                    }
+                } else {
+                    Log.d("data-base", "get failed with ", task.getException());
+                }
+            }
+        });
+
         mMapView.onResume();
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
@@ -81,7 +119,7 @@ public class Map_fragment extends Fragment {
                                     setCurrentLocation(new LatLng(arg0.getLatitude(), arg0.getLongitude()));
                                     googleMap.addCircle(new CircleOptions()
                                             .center(new LatLng(arg0.getLatitude(), arg0.getLongitude()))
-                                            .radius(1 * 1000) //measures in meters, *1000 of whatever user set
+                                            .radius(searchDistance * 1000) //measures in meters, *1000 of whatever user set
                                             .strokeColor(Color.argb(50, 194, 94, 0))
                                             .fillColor(Color.argb(50, 251, 140, 0))
                                     );
@@ -106,7 +144,7 @@ public class Map_fragment extends Fragment {
                         if(currentLocation!=null) {
                             googleMap.addCircle(new CircleOptions()
                                     .center(currentLocation)
-                                    .radius(1 * 1000) //measures in meters, *1000 of whatever user set
+                                    .radius(searchDistance * 1000) //measures in meters, *1000 of whatever user set
                                     .strokeColor(Color.argb(100, 194, 94, 0))
                                     .fillColor(Color.argb(80, 251, 140, 0))
                             );
