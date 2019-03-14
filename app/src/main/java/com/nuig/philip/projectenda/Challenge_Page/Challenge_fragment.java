@@ -3,10 +3,12 @@ package com.nuig.philip.projectenda.Challenge_Page;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
+import android.content.IntentFilter;
 import android.nfc.FormatException;
 import android.nfc.NdefMessage;
 import android.nfc.tech.Ndef;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -17,10 +19,23 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.nuig.philip.projectenda.Tasks.Animations;
+import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 import com.nuig.philip.projectenda.R;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Challenge_fragment extends DialogFragment {
 
@@ -28,13 +43,17 @@ public class Challenge_fragment extends DialogFragment {
     public static View view;
     private Button challengeHelpBtn;
     private boolean helpOpen = false;
+    private FirebaseAuth auth;
+    private FirebaseFirestore database;
+    private  InternetConnection broadcastReceiver;
+    private String challengeImgUrl, challengeNum;
+    private DocumentReference userDoc, challengeDoc;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_challenge, container, false);
-        Glide.with(getActivity()).load(getResources().getString(R.string.challenge_image_url))
-                .placeholder(R.drawable.loading_image)
-                .into((ImageView) view.findViewById(R.id.challenge_image));
+        auth = FirebaseAuth.getInstance();
+        refreshDocuments();
 
         view.findViewById(R.id.challenge_help).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,12 +69,54 @@ public class Challenge_fragment extends DialogFragment {
         view.findViewById(R.id.help_image).setMinimumHeight(view.findViewById(R.id.challenge_image).getMeasuredWidth());
         view.findViewById(R.id.help_image).setMinimumWidth(view.findViewById(R.id.challenge_image).getMeasuredWidth());
 
+        broadcastReceiver = new InternetConnection(getActivity(), (ImageView) getActivity().findViewById(R.id.challenge_image), challengeImgUrl);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        getActivity().registerReceiver(broadcastReceiver, filter);
 
         return view;
     }
 
-    public void onNfcDetected(Ndef ndef, MainActivity main){
+    public void refreshDocuments(){
+        database = FirebaseFirestore.getInstance();
+        userDoc = database.collection("users").document(auth.getCurrentUser().getUid());
+        userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        challengeNum = document.getData().get("challenge#").toString();
+                        challengeDoc = database.collection("challenges").document("challenge"+challengeNum);
+                        challengeDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    DocumentSnapshot document = task.getResult();
+                                    if (document.exists()) {
+                                        challengeImgUrl = document.getData().get("url").toString();
+                                        Glide.with(getActivity()).load(challengeImgUrl)
+                                                .placeholder(R.drawable.loading_image)
+                                                .into((ImageView) view.findViewById(R.id.challenge_image));
+                                    } else {
+                                        Log.d("data-base", "No such document");
+                                    }
+                                } else {
+                                    Log.d("data-base", "get failed with ", task.getException());
+                                }
+                            }
+                        });
+                    } else {
+                        Log.d("data-base", "No such document");
+                    }
+                } else {
+                    Log.d("data-base", "get failed with ", task.getException());
+                }
+            }
+        });
+    }
 
+    public void onNfcDetected(Ndef ndef, MainActivity main){
         readFromNFC(ndef, main);
     }
 
@@ -71,11 +132,45 @@ public class Challenge_fragment extends DialogFragment {
                 String appUrl = new String(ndefMessage.getRecords()[0].getPayload());
                 Log.d(TAG, appUrl);
                 if (appUrl.contains("com.nuig.philip.projectenda")) {
-                    String message = new String(ndefMessage.getRecords()[1].getPayload());
-                    Log.d(TAG, "readFromNFC: " + message);
-                    Toasts.successToast(message, main, Toast.LENGTH_SHORT);
-                    //todo set card Image dialog to appear with location picture and name when NFC tag confirmed
-                    //use this for viewing locations of previous challenges in profile
+                    final String message = new String(ndefMessage.getRecords()[1].getPayload());
+
+                    challengeDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+                                if (document.exists()) {
+                                    if (message.equals(document.getData().get("code").toString())) {
+                                        Toasts.successToast("Congratulations", getActivity(), Toast.LENGTH_SHORT);
+                                        //todo set card Image dialog to appear with location picture and name when NFC tag confirmed
+
+                                        String newNum = String.valueOf(Integer.parseInt(challengeNum)+1);
+                                        userDoc.update("challenge#", newNum)
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        refreshDocuments();
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        Log.w("data-base", "Error writing document", e);
+                                                    }
+                                                });
+                                    }
+                                    else {
+                                        Toasts.failToast("Tag does not match current challenge", getActivity(), Toast.LENGTH_LONG);
+                                    }
+
+                                } else {
+                                    Log.d("data-base", "No such document");
+                                }
+                            } else {
+                                Log.d("data-base", "get failed with ", task.getException());
+                            }
+                        }
+                    });
                 }
                 else {
                     Toasts.failToast("Incompatible Tag", main, Toast.LENGTH_SHORT);

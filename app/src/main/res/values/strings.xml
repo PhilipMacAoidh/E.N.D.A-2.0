@@ -27,7 +27,6 @@
 
     <!--Values for Challenge Fragment-->
     <string name="challenge_title">CHALLENGE</string>
-    <string name="challenge_image_url">https://res.cloudinary.com/teepublic/image/private/s--3_UGVhYN--/t_Preview/b_rgb:191920,c_limit,f_jpg,h_630,q_90,w_630/v1466107758/production/designs/547814_1.jpg</string>
     <string name="challenge_help_text">I found the sticker, now what?</string>
     <string name="nfc_hint">Scan Tag For Code</string>
     <string name="tag_detected">NFC Tag Detected!</string>
