@@ -3,6 +3,7 @@ package com.nuig.philip.projectenda.Profile;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -33,9 +34,7 @@ import java.util.Date;
 
 public class Profile extends AppCompatActivity {
 
-    //todo add map to back of the card
     //todo make the text font customizable
-    //todo pull refresh progress bar
 
     private Toolbar toolbar;
     private InternetConnection broadcastReceiver;
@@ -137,6 +136,15 @@ public class Profile extends AppCompatActivity {
                 layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
                 dialog.show();
                 dialog.getWindow().setAttributes(layoutParams);
+            }
+        });
+
+        final SwipeRefreshLayout pullToRefresh = findViewById(R.id.pullToRefresh);
+        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+//                refreshData(); // your code
+                pullToRefresh.setRefreshing(false);
             }
         });
     }

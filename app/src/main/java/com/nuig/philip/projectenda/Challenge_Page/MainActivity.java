@@ -19,15 +19,25 @@ import android.view.View;
 import android.nfc.NfcAdapter;
 import android.widget.ImageView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.nuig.philip.projectenda.Login.SignIn;
 import com.nuig.philip.projectenda.Profile.Profile;
 import com.nuig.philip.projectenda.R;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,11 +46,9 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private NfcAdapter nfcAdapter;
     private Challenge_fragment mNfcReadFragment;
-    public static final String TAG = MainActivity.class.getSimpleName();
     private ViewPagerAdapter adapter;
     private static FirebaseAuth auth;
     private FirebaseAuth.AuthStateListener authListener;
-    private  InternetConnection broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         //get firebase auth instance
         auth = FirebaseAuth.getInstance();
-
         authListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -100,11 +107,6 @@ public class MainActivity extends AppCompatActivity {
                 this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
         if(nfcAdapter!= null)
             nfcAdapter.enableForegroundDispatch(this, pendingIntent, nfcIntentFilter, null);
-
-        broadcastReceiver = new InternetConnection(this, (ImageView) findViewById(R.id.challenge_image), getString(R.string.challenge_image_url));
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-        registerReceiver(broadcastReceiver, filter);;
     }
 
     @Override
@@ -112,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         if(nfcAdapter!= null)
             nfcAdapter.disableForegroundDispatch(this);
-        unregisterReceiver(broadcastReceiver);
     }
 
     @Override
@@ -129,8 +130,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-
-        Log.d(TAG, "onNewIntent: " + intent.getAction());
 
         if (tag != null) {
             Ndef ndef = Ndef.get(tag);

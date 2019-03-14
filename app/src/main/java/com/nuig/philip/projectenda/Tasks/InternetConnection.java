@@ -33,7 +33,9 @@ public class InternetConnection extends BroadcastReceiver {
             NetworkInfo ni=(NetworkInfo) intent.getExtras().get(ConnectivityManager.EXTRA_NETWORK_INFO);
             if(ni!=null && ni.getState()==NetworkInfo.State.CONNECTED) {
                 if(firstRun) {
-                    Glide.with(activity).load(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl().toString()).into(view);
+                    try {
+                        Glide.with(activity).load(URL).into(view);
+                    } catch(Exception e){}
                 }
                 firstRun = true;
             }

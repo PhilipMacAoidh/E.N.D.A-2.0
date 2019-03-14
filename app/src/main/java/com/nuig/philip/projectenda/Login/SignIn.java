@@ -32,6 +32,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -44,6 +45,8 @@ import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.nuig.philip.projectenda.Challenge_Page.Challenge_fragment.view;
@@ -350,6 +353,12 @@ public class SignIn extends AppCompatActivity {
                                     .setDisplayName(username)
                                     .build();
                             uploadImage();
+                            FirebaseFirestore database = FirebaseFirestore.getInstance();
+                            Map<String, Object> user = new HashMap<>();
+                            user.put("challenge#", 1);
+                            user.put("distance", 1);
+                            database.collection("users").document(auth.getCurrentUser().getUid())
+                                    .set(user);
                             auth.getCurrentUser().updateProfile(profileCreation)
                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
