@@ -106,7 +106,6 @@ public class Settings extends AppCompatActivity {
                             case 20: dropdown.setSelection(6); break;
                             case 25: dropdown.setSelection(7); break;
                         }
-                        Log.i("data-base", "Old selection set");
                     } else {
                         Log.d("data-base", "No such document");
                     }
@@ -119,7 +118,6 @@ public class Settings extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if(!firstRun) {
-                    Log.i("data-base", "Item Selected#");
                     switch (position) {
                         case 0:
                             newDistance = 1;
@@ -149,7 +147,6 @@ public class Settings extends AppCompatActivity {
                     if (!secondRun) {
                         distanceChanged = true;
                         switchToSave();
-                        Log.i("data-base", "Item Selected@");
                     }
                     secondRun = false;
                 } firstRun = false;

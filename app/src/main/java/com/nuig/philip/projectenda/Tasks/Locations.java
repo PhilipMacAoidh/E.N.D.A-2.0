@@ -42,4 +42,17 @@ public class Locations {
     public Double getLongitude() {
         return longitude;
     }
+
+    @Override
+    public String toString() {
+        String output =
+                "Name: "+this.name+
+                ", Date: "+this.date+
+                ", Wiki: "+this.wiki+
+                ", imgUrl: "+this.imgURL+
+                ", Extract: "+this.info+
+                ", Co-Ordinates: "+this.latitude+
+                ", "+this.longitude;
+        return output;
+    }
 }

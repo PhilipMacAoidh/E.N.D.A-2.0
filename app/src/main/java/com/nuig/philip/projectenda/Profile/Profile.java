@@ -3,10 +3,12 @@ package com.nuig.philip.projectenda.Profile;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +21,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.nuig.philip.projectenda.Leaderboards.Leaderboards;
 import com.nuig.philip.projectenda.R;
 import com.nuig.philip.projectenda.Tasks.Animations;
@@ -30,6 +38,9 @@ import com.nuig.philip.projectenda.Tasks.Locations;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 
 public class Profile extends AppCompatActivity {
@@ -42,6 +53,9 @@ public class Profile extends AppCompatActivity {
     private int myLastVisiblePos;
     private Integer originalHeights[];
     private Boolean firstRunDown = true, firstRunUp = false, heightGather = true;
+    private Locations[] historyArray;
+    private HistoryLoader locationsAdapter;
+    private GridView gridView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,9 +90,25 @@ public class Profile extends AppCompatActivity {
 
         TextView profileName = findViewById(R.id.nameText);
         profileName.setText(user.getDisplayName());
-        TextView points_text = findViewById(R.id.profile_points);
-        String points = String.valueOf(1024) + " " + this.getString(R.string.points);
-        points_text.setText(points);
+        final TextView points_text = findViewById(R.id.profile_points);
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        DocumentReference userDoc = database.collection("users").document(user.getUid());
+        userDoc.get()
+            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            points_text.setText(document.getData().get("points").toString()+" points");
+                        } else {
+                            Log.d("data-base", "No such document");
+                        }
+                    } else {
+                        Log.d("data-base", "get failed with ", task.getException());
+                    }
+                }
+        });
         points_text.setOnClickListener( new View.OnClickListener()
         {
             public void onClick(View v){
@@ -89,11 +119,26 @@ public class Profile extends AppCompatActivity {
         Locations OB1 = new Locations("Spanish Arch", new SimpleDateFormat("dd/MM/yyyy").format(new Date()), "https://en.wikipedia.org/wiki/Spanish_Arch", "https://upload.wikimedia.org/wikipedia/commons/c/c7/Spanish_Arch.JPG", 53.270260,-9.053810,"The Spanish Arch and the Caoċ Arch in Galway city, Ireland, are two remaining arches on the Ceann an Bhalla. The two arches were part of the extension of the city wall from Martin's Tower to the bank of the River Corrib, as a measure to protect the city's quays, which were in the area once known as the Fish Market.");
         Locations OB2 = new Locations("Galway Cathedral", new SimpleDateFormat("dd/MM/yyyy").format(new Date(118, 0, 10)), "https://en.wikipedia.org/wiki/Cathedral_of_Our_Lady_Assumed_into_Heaven_and_St_Nicholas,_Galway", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Galway_cathedral.jpg/440px-Galway_cathedral.jpg", 53.275145, -9.057533,"The Cathedral of Our Lady Assumed into Heaven and St Nicholas, commonly known as Galway Cathedral, is a Roman Catholic cathedral in Galway, Ireland, and one of the largest and most impressive buildings in the city. Construction began in 1958 on the site of the old city prison.");
         Locations OB3 = new Locations("Eyre Square", new SimpleDateFormat("dd/MM/yyyy").format(new Date(118, 3, 20)), "https://en.wikipedia.org/wiki/Eyre_Square", "https://upload.wikimedia.org/wikipedia/commons/9/97/Fountain_Galway_01.jpg", 53.274343, -9.049237, "Eyre Square, also known as John F. Kennedy Memorial Park is an inner-city public park in Galway, Ireland. The park is within the city centre, adjoining the nearby shopping area of William Street and Shop Street. Galway railway station is adjacent to Eyre Square.");
-        final Locations[] history = {OB1, OB2, OB3, OB1, OB2, OB3, OB1, OB2, OB3, OB1, OB2, OB3};
-        final GridView gridView = (GridView)findViewById(R.id.profileHistory);
-        final HistoryLoader locationsAdapter = new HistoryLoader(this, history);
+        userDoc.collection("history").get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        List<DocumentSnapshot> history = task.getResult().getDocuments();
+                        historyArray  = new Locations[history.size()];
+                        for(int i=0; i<history.size(); i++) {
+                            Map ref = history.get(i).getData();
+                            historyArray[i] = new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), (String)ref.get("wiki"), (String)ref.get("imgURL"), (Double)ref.get("latitude"), (Double)ref.get("longitude"), (String)ref.get("info"));
+                            Log.e("data-base", historyArray[i].toString());
+                            locationsAdapter = new HistoryLoader(Profile.this, historyArray);
+                            gridView.setAdapter(locationsAdapter);
+                        }
+                        if(task.getResult().getDocuments().listIterator().hasNext()) {
+                            task.getResult().getDocuments().listIterator().next();
+                        }
+                    }
+                });
+        gridView = (GridView)findViewById(R.id.profileHistory);
         myLastVisiblePos = gridView.getFirstVisiblePosition();
-        gridView.setAdapter(locationsAdapter);
         gridView.setOnScrollListener( new AbsListView.OnScrollListener() {
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
