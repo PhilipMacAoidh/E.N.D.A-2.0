@@ -124,23 +124,107 @@ public class HistoryLoader extends BaseAdapter {
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume();
         mMapView.getMapAsync(new OnMapReadyCallback() {
-             @Override
-             public void onMapReady(GoogleMap mMap) {
-                 MarkerOptions markerObject = new MarkerOptions().position(new LatLng(loc.getLatitude(), loc.getLongitude()));
-                 googleMap = mMap;
-                 googleMap.getUiSettings().setAllGesturesEnabled(false);
-                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getLatitude(), loc.getLongitude()), 16));
-                 googleMap.addMarker(markerObject);
-                 googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-                     public void onMapClick(LatLng point) {
-                         cardFlipAnimation(dialogView, frontCard, backCard);
-                     }
-                 });
-             }
-         });
+            @Override
+            public void onMapReady(GoogleMap mMap) {
+                MarkerOptions markerObject = new MarkerOptions().position(new LatLng(loc.getLatitude(), loc.getLongitude()));
+                googleMap = mMap;
+                googleMap.getUiSettings().setAllGesturesEnabled(false);
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getLatitude(), loc.getLongitude()), 16));
+                googleMap.addMarker(markerObject);
+                googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                    public void onMapClick(LatLng point) {
+                        cardFlipAnimation(dialogView, frontCard, backCard);
+                    }
+                });
+            }
+        });
         locationInfoName.setText(loc.getName());
         synopsis.setText(loc.getInfo());
 //        wikiBtn.setText("www.pissoff.com");
+
+        locationCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardFlipAnimation(dialogView, frontCard, backCard);
+            }
+        });
+        locationInfoName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardFlipAnimation(dialogView, frontCard, backCard);
+            }
+        });
+        synopsis.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardFlipAnimation(dialogView, frontCard, backCard);
+            }
+        });
+
+        wikiBtn.setText(loc.getWiki().substring(0, Math.min(loc.getWiki().length(), 46)) + "....");
+        wikiBtn.setOnClickListener( new View.OnClickListener()
+        {
+            public void onClick(View v){
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(loc.getWiki()));
+                Context.startActivity(browserIntent);
+            }
+        });
+
+        return cardView;
+    }
+
+    public View getDialog(Locations[] position, ViewGroup parent, View dialog, final Bundle savedInstanceState) {
+        frontShowing = true;
+        final Locations loc = position[0];
+        final View dialogView = dialog;
+        final LayoutInflater layoutInflater = LayoutInflater.from(Context);
+        final View cardView = layoutInflater.inflate(R.layout.layout_history_location, null);
+        final CardView locationCard = (CardView)cardView.findViewById(R.id.cardView);
+
+        final LinearLayout frontCard = cardView.findViewById(R.id.frontCard);
+        final ImageView locationImage = (ImageView)cardView.findViewById(R.id.location_image);
+        final TextView locationName = (TextView)cardView.findViewById(R.id.location_name);
+        final TextView date = (TextView)cardView.findViewById(R.id.location_date);
+
+        final LinearLayout backCard = cardView.findViewById(R.id.backCard);
+        final MapView mMapView = (MapView) cardView.findViewById(R.id.infoMap);
+        final TextView locationInfoName = cardView. findViewById(R.id.locationInfoName);
+        final TextView synopsis = cardView.findViewById(R.id.synopsis);
+        final TextView wikiBtn = cardView.findViewById(R.id.urlBtn);
+
+        ViewGroup.MarginLayoutParams cardParams = (ViewGroup.MarginLayoutParams) locationCard.getLayoutParams();
+        cardParams.setMargins(0, 0, 0, 0);
+        //todo change name font based on history cards
+        locationCard.requestLayout();
+
+        Glide.with(parent).load(loc.getImgURL())
+                .centerCrop()
+                .placeholder(R.drawable.loading_image)
+                .into(locationImage);
+        locationName.setText(loc.getName());
+        locationName.setTextSize(24);
+        date.setTextSize(14);
+        date.setText(loc.getDate());
+
+        mMapView.onCreate(savedInstanceState);
+        mMapView.onResume();
+        mMapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap mMap) {
+                MarkerOptions markerObject = new MarkerOptions().position(new LatLng(loc.getLatitude(), loc.getLongitude()));
+                googleMap = mMap;
+                googleMap.getUiSettings().setAllGesturesEnabled(false);
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getLatitude(), loc.getLongitude()), 16));
+                googleMap.addMarker(markerObject);
+                googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                    public void onMapClick(LatLng point) {
+                        cardFlipAnimation(dialogView, frontCard, backCard);
+                    }
+                });
+            }
+        });
+        locationInfoName.setText(loc.getName());
+        synopsis.setText(loc.getInfo());
 
         locationCard.setOnClickListener(new View.OnClickListener() {
             @Override

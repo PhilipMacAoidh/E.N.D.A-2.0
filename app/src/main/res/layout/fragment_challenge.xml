@@ -51,7 +51,8 @@
                     android:cropToPadding="false"
                     android:paddingRight="3dp"
                     android:paddingBottom="3dp"
-                    android:visibility="visible"/>
+                    android:visibility="visible"
+                    app:srcCompat="@drawable/loading_image"/>
 
                 <android.support.constraint.ConstraintLayout
                     android:id="@+id/help_image"
