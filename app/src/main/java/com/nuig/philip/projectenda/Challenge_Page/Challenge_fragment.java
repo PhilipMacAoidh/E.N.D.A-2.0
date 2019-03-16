@@ -2,7 +2,6 @@ package com.nuig.philip.projectenda.Challenge_Page;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.content.IntentFilter;
 import android.nfc.FormatException;
@@ -30,9 +29,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.nuig.philip.projectenda.Profile.Profile;
 import com.nuig.philip.projectenda.Tasks.Animations;
 import com.nuig.philip.projectenda.Tasks.HistoryLoader;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
@@ -42,8 +38,6 @@ import com.nuig.philip.projectenda.R;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Challenge_fragment extends DialogFragment {
@@ -55,7 +49,7 @@ public class Challenge_fragment extends DialogFragment {
     private FirebaseUser auth;
     private FirebaseFirestore database;
     private InternetConnection broadcastReceiver;
-    private String challengeImgUrl, challengeNum;
+    private String challengeImgUrl, challengeNum, font;
     private DocumentReference userDoc, challengeDoc;
     private Bundle sIS;
 
@@ -97,6 +91,7 @@ public class Challenge_fragment extends DialogFragment {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
+                        font = document.getData().get("font").toString();
                         challengeNum = document.getData().get("challenge#").toString();
                         challengeDoc = database.collection("challenges").document("challenge"+challengeNum);
                         challengeDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -105,24 +100,24 @@ public class Challenge_fragment extends DialogFragment {
                                 if (task.isSuccessful()) {
                                     DocumentSnapshot document = task.getResult();
                                     if (document.exists()) {
-                                        challengeImgUrl = document.getData().get("imgUrl").toString();
+                                        challengeImgUrl = document.getData().get("challengeUrl").toString();
                                         Glide.with(getActivity()).load(challengeImgUrl)
                                                 .centerCrop()
                                                 .placeholder(R.drawable.loading_image)
                                                 .into((ImageView) view.findViewById(R.id.challenge_image));
                                     } else {
-                                        Log.d("data-base", "No such document");
+                                        Log.d(TAG, "Cannot located document: challenge"+challengeNum);
                                     }
                                 } else {
-                                    Log.d("data-base", "get failed with ", task.getException());
+                                    Log.d(TAG, "get failed with ", task.getException());
                                 }
                             }
                         });
                     } else {
-                        Log.d("data-base", "No such document");
+                        Log.d(TAG, "No document found with this userID");
                     }
                 } else {
-                    Log.d("data-base", "get failed with ", task.getException());
+                    Log.d(TAG, "get failed with ", task.getException());
                 }
             }
         });
@@ -154,11 +149,10 @@ public class Challenge_fragment extends DialogFragment {
                                 if (document.exists()) {
                                     if (message.equals(document.getData().get("code").toString())) {
                                         Toasts.successToast("Congratulations", getActivity(), Toast.LENGTH_SHORT);
-                                        //todo set card Image dialog to appear with location picture and name when NFC tag confirmed
 
                                         Map ref = document.getData();
                                         final Locations[] completed = {new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), (String)ref.get("wikiUrl"), (String)ref.get("imgUrl"), (Double)ref.get("lat"), (Double)ref.get("long"), (String)ref.get("extract"))};
-                                        final HistoryLoader locationsAdapter = new HistoryLoader(getActivity(), completed);
+                                        final HistoryLoader locationsAdapter = new HistoryLoader(getActivity(), completed, font);
                                         Dialog dialog = new Dialog(getActivity());
                                         dialog.setContentView(locationsAdapter.getDialog(completed, (ViewGroup) view, dialog.getWindow().getDecorView(), sIS));
                                         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
@@ -190,7 +184,7 @@ public class Challenge_fragment extends DialogFragment {
                                                 .addOnFailureListener(new OnFailureListener() {
                                                     @Override
                                                     public void onFailure(@NonNull Exception e) {
-                                                        Log.w("data-base", "Error writing document", e);
+                                                        Log.w(TAG, "Error updating points", e);
                                                     }
                                                 });
                                         userDoc.collection("history").add(completed[0]);
@@ -200,10 +194,10 @@ public class Challenge_fragment extends DialogFragment {
                                     }
 
                                 } else {
-                                    Log.d("data-base", "No such document");
+                                    Log.d(TAG, "Cannot located document: challenge"+challengeNum);
                                 }
                             } else {
-                                Log.d("data-base", "get failed with ", task.getException());
+                                Log.d(TAG, "get failed with ", task.getException());
                             }
                         }
                     });

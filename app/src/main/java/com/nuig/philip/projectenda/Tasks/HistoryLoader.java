@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,12 +30,18 @@ public class HistoryLoader extends BaseAdapter {
 
     private Context Context;
     private Locations[] locations;
+    private String font;
     static Boolean frontShowing;
     private GoogleMap googleMap;
 
-    public HistoryLoader(Context context, Locations[] locations) {
+    public HistoryLoader(Context context, Locations[] locations, String font) {
         this.Context = context;
         this.locations = locations;
+        if (font == null){
+            this.font = "none";
+        }else{
+            this.font = font;
+        }
     }
 
     @Override
@@ -73,9 +81,32 @@ public class HistoryLoader extends BaseAdapter {
         }
         if(position == (getCount()-2) || position == (getCount()-1)) {
             cardParams.setMargins(0, 16, 0, 32);
-            //todo change name font based on history cards
-            //https://developer.android.com/guide/topics/ui/look-and-feel/fonts-in-xml
             locationCard.requestLayout();
+        }
+
+        int fontRef;
+        switch (font) {
+            case "friday_vibes":
+                fontRef = R.font.friday_vibes;
+                break;
+            case "modista_script":
+                fontRef = R.font.modista_script;
+                break;
+            case "queenstown_signature":
+                fontRef = R.font.queenstown_signature;
+                break;
+            case "rockness":
+                fontRef = R.font.rockness;
+                break;
+            case "simplicity":
+                fontRef = R.font.simplicity;
+                break;
+            default:
+                fontRef = 0;
+                break;
+        }
+        if (fontRef != 0) {
+            locationName.setTypeface(ResourcesCompat.getFont(parent.getContext(), fontRef));
         }
 
         Glide.with(parent).load(loc.getImgURL())
@@ -109,15 +140,39 @@ public class HistoryLoader extends BaseAdapter {
 
         ViewGroup.MarginLayoutParams cardParams = (ViewGroup.MarginLayoutParams) locationCard.getLayoutParams();
         cardParams.setMargins(0, 0, 0, 0);
-        //todo change name font based on history cards
         locationCard.requestLayout();
+
+        int fontRef;
+        switch (font) {
+            case "friday_vibes":
+                fontRef = R.font.friday_vibes;
+                break;
+            case "modista_script":
+                fontRef = R.font.modista_script;
+                break;
+            case "queenstown_signature":
+                fontRef = R.font.queenstown_signature;
+                break;
+            case "rockness":
+                fontRef = R.font.rockness;
+                break;
+            case "simplicity":
+                fontRef = R.font.simplicity;
+                break;
+            default:
+                fontRef = 0;
+                break;
+        }
+        if (fontRef != 0) {
+            locationName.setTypeface(ResourcesCompat.getFont(parent.getContext(), fontRef));
+        }
 
         Glide.with(parent).load(loc.getImgURL())
                 .centerCrop()
                 .placeholder(R.drawable.loading_image)
                 .into(locationImage);
         locationName.setText(loc.getName());
-        locationName.setTextSize(24);
+        locationName.setTextSize(28);
         date.setTextSize(14);
         date.setText(loc.getDate());
 
@@ -140,7 +195,6 @@ public class HistoryLoader extends BaseAdapter {
         });
         locationInfoName.setText(loc.getName());
         synopsis.setText(loc.getInfo());
-//        wikiBtn.setText("www.pissoff.com");
 
         locationCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -194,15 +248,39 @@ public class HistoryLoader extends BaseAdapter {
 
         ViewGroup.MarginLayoutParams cardParams = (ViewGroup.MarginLayoutParams) locationCard.getLayoutParams();
         cardParams.setMargins(0, 0, 0, 0);
-        //todo change name font based on history cards
         locationCard.requestLayout();
+
+        int fontRef;
+        switch (font) {
+            case "friday_vibes":
+                fontRef = R.font.friday_vibes;
+                break;
+            case "modista_script":
+                fontRef = R.font.modista_script;
+                break;
+            case "queenstown_signature":
+                fontRef = R.font.queenstown_signature;
+                break;
+            case "rockness":
+                fontRef = R.font.rockness;
+                break;
+            case "simplicity":
+                fontRef = R.font.simplicity;
+                break;
+            default:
+                fontRef = 0;
+                break;
+        }
+        if (fontRef != 0) {
+            locationName.setTypeface(ResourcesCompat.getFont(parent.getContext(), fontRef));
+        }
 
         Glide.with(parent).load(loc.getImgURL())
                 .centerCrop()
                 .placeholder(R.drawable.loading_image)
                 .into(locationImage);
         locationName.setText(loc.getName());
-        locationName.setTextSize(24);
+        locationName.setTextSize(28);
         date.setTextSize(14);
         date.setText(loc.getDate());
 

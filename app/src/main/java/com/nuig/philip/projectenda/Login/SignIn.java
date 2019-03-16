@@ -4,19 +4,15 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,7 +23,6 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,7 +32,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.nuig.philip.projectenda.Challenge_Page.MainActivity;
-import com.nuig.philip.projectenda.Profile.Settings;
 import com.nuig.philip.projectenda.Tasks.Animations;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 import com.nuig.philip.projectenda.R;
@@ -48,8 +42,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import static com.nuig.philip.projectenda.Challenge_Page.Challenge_fragment.view;
 
 public class SignIn extends AppCompatActivity {
 
@@ -208,7 +200,7 @@ public class SignIn extends AppCompatActivity {
     private void uploadImage() {
         if(filePath != null)
         {
-            ref = storageReference.child(auth.getUid().toString()+"/ProfilePictures/"+ UUID.randomUUID().toString());
+            ref = storageReference.child("Users/"+auth.getUid().toString()+"/ProfilePictures/"+ UUID.randomUUID().toString());
             ref.putFile(filePath)
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -357,8 +349,9 @@ public class SignIn extends AppCompatActivity {
                             Map<String, Object> user = new HashMap<>();
                             user.put("challenge#", 1);
                             user.put("distance", 1);
-                            database.collection("users").document(auth.getCurrentUser().getUid())
-                                    .set(user);
+                            user.put("points", 0);
+                            user.put("fonts", "none");
+                            database.collection("users").document(auth.getCurrentUser().getUid()).set(user);
                             auth.getCurrentUser().updateProfile(profileCreation)
                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
@@ -374,7 +367,6 @@ public class SignIn extends AppCompatActivity {
                         }
                     }
                 });
-        //todo create new activity for getting name, picture, DoB, gender (Vertical Stepper)
     }
 
     private void openReset() {

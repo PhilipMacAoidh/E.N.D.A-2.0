@@ -48,6 +48,7 @@ import com.nuig.philip.projectenda.Tasks.Toasts;
 
 public class Map_fragment extends Fragment {
 
+    public static final String TAG = Map_fragment.class.getSimpleName();
     MapView mMapView;
     private GoogleMap googleMap;
     private LatLng currentLocation, destLocation;
@@ -94,10 +95,10 @@ public class Map_fragment extends Fragment {
                     if (document.exists()) {
                         searchDistance = (long) document.getData().get("distance");
                     } else {
-                        Log.d("data-base", "No such document");
+                        Log.d(TAG, "No such document");
                     }
                 } else {
-                    Log.d("data-base", "get failed with ", task.getException());
+                    Log.d(TAG, "get failed with ", task.getException());
                 }
             }
         });

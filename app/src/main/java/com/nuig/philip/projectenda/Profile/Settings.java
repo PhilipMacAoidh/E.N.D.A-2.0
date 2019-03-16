@@ -54,16 +54,17 @@ public class Settings extends AppCompatActivity {
     private Toolbar toolbar;
     private Uri filePath;
     private ImageView changePPBtn;
-    private boolean photoChanged = false, usernameChanged = false, distanceChanged = false, firstRun = true, secondRun = true;
+    private boolean photoChanged = false, usernameChanged = false, distanceChanged = false, fontChanged = false, firstRun = true, secondRun = true;
     private FirebaseUser user;
     private FirebaseStorage storage;
     private StorageReference storageReference, ref;
     private InternetConnection broadcastReceiver;
     private Button actionBtn;
     private EditText inputUsername;
-    private Spinner dropdown;
+    private Spinner distanceSpinner, fontSpinner;
     private DocumentReference userDoc;
     private int newDistance;
+    private String newFont;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,10 +87,11 @@ public class Settings extends AppCompatActivity {
         changePPBtn = findViewById(R.id.changePPBtn);
         inputUsername = (EditText) findViewById(R.id.username);
         inputUsername.addTextChangedListener(usernameFilter);
-        dropdown = findViewById(R.id.distanceSpinner);
+        distanceSpinner = findViewById(R.id.distanceSpinner);
+        fontSpinner = findViewById(R.id.fontSpinner);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.distance_options));
-        dropdown.setAdapter(adapter);
+        distanceSpinner.setAdapter(adapter);
         userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -97,59 +99,120 @@ public class Settings extends AppCompatActivity {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
                         switch(Math.round((long) document.getData().get("distance"))) {
-                            case 1: dropdown.setSelection(0); break;
-                            case 2: dropdown.setSelection(1); break;
-                            case 3: dropdown.setSelection(2); break;
-                            case 5: dropdown.setSelection(3); break;
-                            case 10: dropdown.setSelection(4); break;
-                            case 15: dropdown.setSelection(5); break;
-                            case 20: dropdown.setSelection(6); break;
-                            case 25: dropdown.setSelection(7); break;
+                            case 1: distanceSpinner.setSelection(0); break;
+                            case 2: distanceSpinner.setSelection(1); break;
+                            case 3: distanceSpinner.setSelection(2); break;
+                            case 5: distanceSpinner.setSelection(3); break;
+                            case 10: distanceSpinner.setSelection(4); break;
+                            case 15: distanceSpinner.setSelection(5); break;
+                            case 20: distanceSpinner.setSelection(6); break;
+                            case 25: distanceSpinner.setSelection(7); break;
                         }
+                        switchToSignOut();
                     } else {
-                        Log.d("data-base", "No such document");
+                        Log.d("Settings", "No document found with this userID");
                     }
                 } else {
-                    Log.d("data-base", "get failed with ", task.getException());
+                    Log.d("Settings", "get failed with ", task.getException());
                 }
             }
         });
-        dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        distanceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if(!firstRun) {
+                switch (position) {
+                    case 0:
+                        newDistance = 1;
+                        break;
+                    case 1:
+                        newDistance = 2;
+                        break;
+                    case 2:
+                        newDistance = 3;
+                        break;
+                    case 3:
+                        newDistance = 5;
+                        break;
+                    case 4:
+                        newDistance = 10;
+                        break;
+                    case 5:
+                        newDistance = 15;
+                        break;
+                    case 6:
+                        newDistance = 20;
+                        break;
+                    case 7:
+                        newDistance = 25;
+                        break;
+                }
+                if (!firstRun) {
+                    distanceChanged = true;
+                    switchToSave();
+                }else{
+                    switchToSignOut();
+                }
+                firstRun = false;
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        ArrayAdapter<String> fontAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.font_options));
+        fontSpinner.setAdapter(fontAdapter);
+        userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        switch((String)document.getData().get("font")) {
+                            case "none": fontSpinner.setSelection(0); break;
+                            case "friday_vibes": fontSpinner.setSelection(1); break;
+                            case "modista_script": fontSpinner.setSelection(2); break;
+                            case "queenstown_signature": fontSpinner.setSelection(3); break;
+                            case "rockness": fontSpinner.setSelection(4); break;
+                            case "simplicity": fontSpinner.setSelection(5); break;
+                        }
+                        switchToSignOut();
+                    } else {
+                        Log.d("Settings", "No document found with this userID");
+                    }
+                } else {
+                    Log.d("Settings", "get failed with ", task.getException());
+                }
+            }
+        });
+        fontSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     switch (position) {
                         case 0:
-                            newDistance = 1;
+                            newFont = "none";
                             break;
                         case 1:
-                            newDistance = 2;
+                            newFont = "friday_vibes";
                             break;
                         case 2:
-                            newDistance = 3;
+                            newFont = "modista_script";
                             break;
                         case 3:
-                            newDistance = 5;
+                            newFont = "queenstown_signature";
                             break;
                         case 4:
-                            newDistance = 10;
+                            newFont = "rockness";
                             break;
                         case 5:
-                            newDistance = 15;
-                            break;
-                        case 6:
-                            newDistance = 20;
-                            break;
-                        case 7:
-                            newDistance = 25;
+                            newFont = "simplicty";
                             break;
                     }
                     if (!secondRun) {
-                        distanceChanged = true;
+                        fontChanged = true;
                         switchToSave();
+                    }else{
+                        switchToSignOut();;
                     }
                     secondRun = false;
-                } firstRun = false;
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
@@ -190,13 +253,15 @@ public class Settings extends AppCompatActivity {
                 }
                 if(distanceChanged) {
                     userDoc.update("distance", newDistance);
-                    Log.i("data-base", "updated");
                 }
-                if (!usernameChanged && !photoChanged && !distanceChanged) {
+                if(fontChanged) {
+                    userDoc.update("font", newFont);
+                }
+                if (!usernameChanged && !photoChanged && !distanceChanged && !fontChanged) {
                     MainActivity.signOut();
                     Toasts.successToast("Goodbye", Settings.this, Toast.LENGTH_SHORT);
                 }
-                if(photoChanged || usernameChanged || distanceChanged) {
+                if(photoChanged || usernameChanged || distanceChanged || fontChanged) {
                     Toasts.successToast(getString(R.string.save_toast_text), Settings.this, Toast.LENGTH_SHORT);
                     photoChanged = false; usernameChanged = false; distanceChanged = false;
                     switchToSignOut();
@@ -265,7 +330,7 @@ public class Settings extends AppCompatActivity {
     private void uploadImage() {
         if(filePath != null)
         {
-            ref = storageReference.child(user.getUid().toString()+"/ProfilePictures/"+ UUID.randomUUID().toString());
+            ref = storageReference.child("Users/"+user.getUid().toString()+"/ProfilePictures/"+ UUID.randomUUID().toString());
             ref.putFile(filePath)
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
