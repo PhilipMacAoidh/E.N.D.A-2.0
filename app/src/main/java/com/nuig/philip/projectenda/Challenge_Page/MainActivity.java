@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //todo create mothod to add more challenges to database, delete after 1 run
+
         //setting toolbar
         toolbar = findViewById(R.id.mainToolbar);
         setSupportActionBar(toolbar);

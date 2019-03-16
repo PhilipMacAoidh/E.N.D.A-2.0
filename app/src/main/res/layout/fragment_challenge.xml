@@ -47,12 +47,14 @@
                     android:layout_marginEnd="20dp"
                     android:layout_marginRight="20dp"
                     android:adjustViewBounds="true"
-                    android:background="@drawable/challenge_image_shadow"
+                    android:background="@drawable/border"
                     android:cropToPadding="false"
-                    android:paddingRight="3dp"
-                    android:paddingBottom="3dp"
+                    android:paddingRight="2dp"
+                    android:paddingBottom="2dp"
+                    android:paddingLeft="2dp"
+                    android:paddingTop="2dp"
                     android:visibility="visible"
-                    app:srcCompat="@drawable/loading_image"/>
+                    app:srcCompat="@drawable/loading_image" />
 
                 <android.support.constraint.ConstraintLayout
                     android:id="@+id/help_image"

@@ -61,6 +61,14 @@
         <item>25 KM</item>
     </string-array>
     <string name="distance_tag">Max. Challenge Distance</string>
+    <string-array name="font_options">
+        <item>default</item>
+        <item>Friday Vibes</item>
+        <item>Modista Script</item>
+        <item>Queenstown Signature</item>
+        <item>Rockness</item>
+        <item>Simplicity</item>
+    </string-array>
     <string name="change_username_hint">New Username</string>
     <string name="save_btn">Save Settings</string>
     <string name="save_toast_text">Changes Saved!</string>

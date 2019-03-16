@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Path;
 import android.support.v4.view.ViewCompat;
@@ -205,10 +206,11 @@ public class Animations{
         return rotation;
     }
 
-    public static Integer[] minifyProfileHeader(final View header, final View history){//, final int elevation) {
+    public static Integer[] minifyProfileHeader(final View header, final View divider, final View history){
         //changing heights
-        Integer originalHeights[] = {header.getMeasuredHeight(), history.getMeasuredHeight()};
+        Integer originalHeights[] = {header.getMeasuredHeight(), divider.getMeasuredHeight(), history.getMeasuredHeight()};
         ValueAnimator minifyHeader = ValueAnimator.ofFloat(header.getMeasuredHeight(), Maths.dpToPx(63, header.getContext()));
+        ValueAnimator minifyDivider = ValueAnimator.ofFloat(divider.getMeasuredHeight(), 0);
         ValueAnimator expandHistory = ValueAnimator.ofFloat(history.getMeasuredHeight(), history.getMeasuredHeight() + (header.getMeasuredHeight()-Maths.dpToPx(63, header.getContext())));
         //dealing with the profile picture
         header.findViewById(R.id.profilePicture).setPivotY(0f);
@@ -240,6 +242,15 @@ public class Animations{
                 header.setLayoutParams(layoutParams);
             }
         });
+        minifyDivider.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float val = (float) valueAnimator.getAnimatedValue();
+                ViewGroup.LayoutParams layoutParams = divider.getLayoutParams();
+                layoutParams.height = (int) val;
+                divider.setLayoutParams(layoutParams);
+            }
+        });
         expandHistory.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -251,7 +262,9 @@ public class Animations{
         });
 
 
+
         minifyHeader.setDuration(800);
+        minifyDivider.setDuration(800);
         expandHistory.setDuration(800);
         scalePhoto.setDuration(800);
         translateName.setDuration(800);
@@ -259,6 +272,7 @@ public class Animations{
 
 
         minifyHeader.start();
+        minifyDivider.start();
         expandHistory.start();
         scalePhoto.start();
         translateName.start();
@@ -268,13 +282,13 @@ public class Animations{
     }
 
 
-    public static void expandProfileHeader(final View header, final View history, final int originalHeaderHeight, final int originalHistoryHeight){//, final int elevation) {
-        ValueAnimator minifyHeader = ValueAnimator.ofInt(header.getMeasuredHeight(), originalHeaderHeight);
-        ValueAnimator expandHistory = ValueAnimator.ofInt(history.getMeasuredHeight(), originalHistoryHeight);
+    public static void expandProfileHeader(final View header, final View divider, final View history, final int originalHeaderHeight, final int originalDividerHeight, final int originalHistoryHeight){
+        ValueAnimator expandHeader = ValueAnimator.ofInt(header.getMeasuredHeight(), originalHeaderHeight);
+        ValueAnimator expandDivider = ValueAnimator.ofInt(divider.getMeasuredHeight(), originalDividerHeight);
+        ValueAnimator minifyHistory = ValueAnimator.ofInt(history.getMeasuredHeight(), originalHistoryHeight);
         header.findViewById(R.id.profilePicture).setPivotY(0f);
         PropertyValuesHolder scaleX = PropertyValuesHolder.ofFloat(SCALE_X, 1f);
         PropertyValuesHolder scaleY = PropertyValuesHolder.ofFloat(SCALE_Y, 1f);
-        Double temp = (double) (header.getMeasuredWidth()/2) - Maths.dpToPx(35, header.getContext());
         PropertyValuesHolder translationX = PropertyValuesHolder.ofFloat(TRANSLATION_X, 0);
         ObjectAnimator scalePhoto = ObjectAnimator.ofPropertyValuesHolder(header.findViewById(R.id.profilePicture), scaleX, scaleY, translationX);
         PropertyValuesHolder translationYName = PropertyValuesHolder.ofFloat(TRANSLATION_Y, 0);
@@ -285,7 +299,7 @@ public class Animations{
         ObjectAnimator translatePoints = ObjectAnimator.ofPropertyValuesHolder(header.findViewById(R.id.profile_points), translationYPoints, translationXPoints);
 
 
-        minifyHeader.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        expandHeader.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 int val = (Integer) valueAnimator.getAnimatedValue();
@@ -294,7 +308,16 @@ public class Animations{
                 header.setLayoutParams(layoutParams);
             }
         });
-        expandHistory.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        expandDivider.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                int val = (Integer) valueAnimator.getAnimatedValue();
+                ViewGroup.LayoutParams layoutParams = divider.getLayoutParams();
+                layoutParams.height = val;
+                divider.setLayoutParams(layoutParams);
+            }
+        });
+        minifyHistory.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 int val = (Integer) valueAnimator.getAnimatedValue();
@@ -305,15 +328,17 @@ public class Animations{
         });
 
 
-        minifyHeader.setDuration(800);
-        expandHistory.setDuration(800);
+        expandHeader.setDuration(800);
+        expandDivider.setDuration(800);
+        minifyHistory.setDuration(800);
         scalePhoto.setDuration(800);
         translateName.setDuration(800);
         translatePoints.setDuration(800);
 
 
-        minifyHeader.start();
-        expandHistory.start();
+        expandHeader.start();
+        expandDivider.start();
+        minifyHistory.start();
         scalePhoto.start();
         translateName.start();
         translatePoints.start();
