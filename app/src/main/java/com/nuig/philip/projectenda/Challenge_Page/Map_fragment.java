@@ -150,10 +150,6 @@ public class Map_fragment extends Fragment {
                                     .fillColor(Color.argb(80, 251, 140, 0))
                             );
                         }
-                        // Create location object
-//                        Location location = new Location(point.latitude, point.longitude);
-                        // add location to SQLite database
-//                        locationsDB.insert(location);
                     }
                 });
             }

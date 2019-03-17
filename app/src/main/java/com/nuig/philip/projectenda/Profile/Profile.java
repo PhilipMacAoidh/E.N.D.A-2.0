@@ -8,11 +8,17 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.transition.Fade;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -23,6 +29,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.common.collect.Lists;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -41,23 +48,24 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import io.grpc.okhttp.internal.Platform;
+
 
 public class Profile extends AppCompatActivity {
-
-    //todo add history text above gridview
 
     private Toolbar toolbar;
     private InternetConnection broadcastReceiver;
     private FirebaseUser user;
     private int myLastVisiblePos;
     private Integer originalHeights[];
-    private Boolean firstRunDown = true, firstRunUp = false, heightGather = true;
+    private Boolean firstRunDown = true, firstRunUp = false, heightGather = true, mostRecent = true;
     private Locations[] historyArray;
     private HistoryLoader locationsAdapter;
     private GridView gridView;
     private String font;
     private List<DocumentSnapshot> history;
     private DocumentReference userDoc;
+    private SwipeRefreshLayout pullToRefresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,11 +111,43 @@ public class Profile extends AppCompatActivity {
             }
         });
 
+        final TextView historyDirection = findViewById(R.id.historyDirection);
+        findViewById(R.id.historyLabel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mostRecent) {
+                    mostRecent = false;
+                    historyDirection.setText("(Oldest First)");
+                }
+                else if (!mostRecent) {
+                    mostRecent = true;
+                    historyDirection.setText("(Newest First)");
+                }
+                history = Lists.reverse(history);
+                Animation fade = Animations.fadeOutAnimation(gridView);
+                fade.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {}
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        gridView.setVisibility(View.INVISIBLE);
+                        createGridView();
+                        Animations.fadeInAnimation(gridView);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
+            }
+        });
+
         userDoc.collection("history").get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         history = task.getResult().getDocuments();
+                        history = Lists.reverse(history);
                         createGridView();
                         if(task.getResult().getDocuments().listIterator().hasNext()) {
                             task.getResult().getDocuments().listIterator().next();
@@ -136,7 +176,7 @@ public class Profile extends AppCompatActivity {
                 }
                 if(currentFirstVisPos < myLastVisiblePos) {
                     //scroll up
-                    if(firstRunUp) {
+                    if(firstRunUp && !Animations.animationRunning) {
                         Animations.expandProfileHeader(findViewById(R.id.profileHeader), findViewById(R.id.historyLabel), findViewById(R.id.profileHistory), originalHeights[0], originalHeights[1], originalHeights[2]);
                         firstRunUp = false;
                         firstRunDown = true;
@@ -161,7 +201,7 @@ public class Profile extends AppCompatActivity {
             }
         });
 
-        final SwipeRefreshLayout pullToRefresh = findViewById(R.id.pullToRefresh);
+        pullToRefresh = findViewById(R.id.pullToRefresh);
         pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -170,6 +210,7 @@ public class Profile extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                                 history = task.getResult().getDocuments();
+                                createGridView();
                                 getProfilePicture();
                                 getUserInfo((TextView) findViewById(R.id.profile_points));
                             }
@@ -230,7 +271,7 @@ public class Profile extends AppCompatActivity {
         historyArray = new Locations[history.size()];
         for(int i=0; i<history.size(); i++) {
             Map ref = history.get(i).getData();
-            historyArray[i] = new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), (String)ref.get("wiki"), (String)ref.get("imgURL"), (Double)ref.get("latitude"), (Double)ref.get("longitude"), (String)ref.get("info"));
+            historyArray[i] = new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), new SimpleDateFormat("HH:mm:ss").format(new Date()), (String)ref.get("wiki"), (String)ref.get("imgURL"), (Double)ref.get("latitude"), (Double)ref.get("longitude"), (String)ref.get("info"));
             locationsAdapter = new HistoryLoader(Profile.this, historyArray, font);
             gridView.setAdapter(locationsAdapter);
         }

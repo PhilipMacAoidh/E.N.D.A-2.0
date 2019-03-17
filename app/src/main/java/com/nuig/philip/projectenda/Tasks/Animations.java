@@ -12,6 +12,10 @@ import android.support.v4.view.ViewCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
 
 import com.nuig.philip.projectenda.R;
 
@@ -21,6 +25,8 @@ import static android.view.View.TRANSLATION_X;
 import static android.view.View.TRANSLATION_Y;
 
 public class Animations{
+
+    public static boolean animationRunning = false;
 
     public static ObjectAnimator leftToRightFlip(final View view) {
         ViewCompat.setElevation(view, 0);
@@ -222,7 +228,7 @@ public class Animations{
         //dealing with name text
         Double yTranslationName = (double) (Maths.dpToPx(135, header.getContext())*-1);
         PropertyValuesHolder translationYName = PropertyValuesHolder.ofFloat(TRANSLATION_Y, yTranslationName.floatValue());
-        Double xTranslationName = (double) (Maths.dpToPx(95, header.getContext())*-1);
+        Double xTranslationName = (double) (Maths.dpToPx(105, header.getContext())*-1);
         PropertyValuesHolder translationXName = PropertyValuesHolder.ofFloat(TRANSLATION_X, xTranslationName.floatValue());
         ObjectAnimator translateName = ObjectAnimator.ofPropertyValuesHolder(header.findViewById(R.id.nameText), translationYName, translationXName);
         //dealing with the points text
@@ -240,6 +246,13 @@ public class Animations{
                 ViewGroup.LayoutParams layoutParams = header.getLayoutParams();
                 layoutParams.height = (int) val;
                 header.setLayoutParams(layoutParams);
+            }
+        });
+        minifyHeader.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                animationRunning = false;
             }
         });
         minifyDivider.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -271,6 +284,7 @@ public class Animations{
         translatePoints.setDuration(800);
 
 
+        animationRunning = true;
         minifyHeader.start();
         minifyDivider.start();
         expandHistory.start();
@@ -342,6 +356,48 @@ public class Animations{
         scalePhoto.start();
         translateName.start();
         translatePoints.start();
+    }
+
+    public static void fadeInAnimation(final View view) {
+        Animation fadeIn = new AlphaAnimation(0, 1);
+        fadeIn.setInterpolator(new DecelerateInterpolator());
+        fadeIn.setDuration(500);
+        fadeIn.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        view.startAnimation(fadeIn);
+    }
+
+    public static Animation fadeOutAnimation(final View view) {
+        Animation fadeOut = new AlphaAnimation(1, 0);
+        fadeOut.setInterpolator(new AccelerateInterpolator());
+        fadeOut.setDuration(500);
+        fadeOut.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.INVISIBLE);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        view.startAnimation(fadeOut);
+
+        return fadeOut;
     }
 
 }

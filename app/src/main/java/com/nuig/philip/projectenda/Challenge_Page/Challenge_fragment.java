@@ -151,7 +151,7 @@ public class Challenge_fragment extends DialogFragment {
                                         Toasts.successToast("Congratulations", getActivity(), Toast.LENGTH_SHORT);
 
                                         Map ref = document.getData();
-                                        final Locations[] completed = {new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), (String)ref.get("wikiUrl"), (String)ref.get("imgUrl"), (Double)ref.get("lat"), (Double)ref.get("long"), (String)ref.get("extract"))};
+                                        final Locations[] completed = {new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), new SimpleDateFormat("HH:mm:ss").format(new Date()), (String)ref.get("wikiUrl"), (String)ref.get("imgUrl"), (Double)ref.get("lat"), (Double)ref.get("long"), (String)ref.get("extract"))};
                                         final HistoryLoader locationsAdapter = new HistoryLoader(getActivity(), completed, font);
                                         Dialog dialog = new Dialog(getActivity());
                                         dialog.setContentView(locationsAdapter.getDialog(completed, (ViewGroup) view, dialog.getWindow().getDecorView(), sIS));
@@ -187,7 +187,7 @@ public class Challenge_fragment extends DialogFragment {
                                                         Log.w(TAG, "Error updating points", e);
                                                     }
                                                 });
-                                        userDoc.collection("history").add(completed[0]);
+                                        userDoc.collection("history").document(new SimpleDateFormat("yyyy:MM:dd").format(new Date()) + " " +new SimpleDateFormat("HH:mm:ss").format(new Date())).set(completed[0]);
                                     }
                                     else {
                                         Toasts.failToast("Tag does not match current challenge", getActivity(), Toast.LENGTH_LONG);
