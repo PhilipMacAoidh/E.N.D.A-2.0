@@ -364,15 +364,13 @@ public class Animations{
         fadeIn.setDuration(500);
         fadeIn.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onAnimationStart(Animation animation) {
-            }
+            public void onAnimationStart(Animation animation) {}
             @Override
             public void onAnimationEnd(Animation animation) {
                 view.setVisibility(View.VISIBLE);
             }
             @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
+            public void onAnimationRepeat(Animation animation) {}
         });
 
         view.startAnimation(fadeIn);

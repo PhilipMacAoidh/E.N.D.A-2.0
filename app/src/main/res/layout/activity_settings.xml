@@ -22,78 +22,205 @@
         android:layout_above="@+id/mLlayoutBottomButtons"
         android:layout_marginTop="56dp">
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_alignParentTop="true">
+            android:layout_height="match_parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:paddingBottom="8dp">
 
-                <ImageView
-                    android:id="@+id/changePPBtn"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginRight="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:src="@drawable/upload_image_icon" />
+                <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/changePPText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="8dp"
+                            android:layout_weight="1"
+                            android:text="@string/change_pp_text"
+                            android:textColor="@color/colorPrimaryDark"
+                            android:textSize="18sp" />
+
+                        <ImageView
+                            android:id="@+id/changePPBtn"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginRight="8dp"
+                            android:layout_marginBottom="8dp"
+                            android:src="@drawable/upload_image_icon" />
+                    </LinearLayout>
+                </android.support.v7.widget.CardView>
 
                 <TextView
-                    android:id="@+id/changePPText"
+                    android:id="@+id/changeUsername"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
                     android:layout_weight="1"
-                    android:text="@string/change_pp_text"
+                    android:gravity="bottom"
+                    android:text="@string/change_username_hint"
+                    android:textColor="@color/colorPrimaryDark"
                     android:textSize="18sp" />
-            </LinearLayout>
 
-            <TextView
-                android:id="@+id/textView3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:layout_weight="1"
-                android:gravity="bottom"
-                android:text="@string/change_username_hint"
-                android:textSize="18sp" />
-
-            <android.support.design.widget.TextInputLayout
-                android:id="@+id/usernameInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:visibility="visible">
-
-                <EditText
-                    android:id="@+id/username"
-                    android:layout_width="fill_parent"
+                <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/change_username_hint"
-                    android:inputType="textPersonName"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
-                    android:textColorHint="@android:color/white" />
-            </android.support.design.widget.TextInputLayout>
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/white"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true">
 
-            <Spinner
-                android:id="@+id/distanceSpinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp" />
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/usernameInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:visibility="visible">
 
-            <Spinner
-                android:id="@+id/fontSpinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp" />
-        </LinearLayout>
+                        <EditText
+                            android:id="@+id/username"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/change_username_hint"
+                            android:inputType="textPersonName"
+                            android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                            android:textColorHint="@android:color/white" />
+                    </android.support.design.widget.TextInputLayout>
+                </android.support.v7.widget.CardView>
+
+                <TextView
+                    android:id="@+id/changeDistance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_weight="1"
+                    android:gravity="bottom"
+                    android:text="Change Challenge Distance"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="18sp" />
+
+                <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <Spinner
+                        android:id="@+id/distanceSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp" />
+                </android.support.v7.widget.CardView>
+
+                <TextView
+                    android:id="@+id/changeFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_weight="1"
+                    android:gravity="bottom"
+                    android:text="Change History Font"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="18sp" />
+
+                <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                        <Spinner
+                            android:id="@+id/fontSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="8dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/example"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="8dp"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginBottom="8dp"
+                                android:layout_weight="1"
+                                android:gravity="bottom"
+                                android:text="Example: "
+                                android:textColor="@color/colorPrimaryDark"
+                                android:textSize="18sp" />
+
+                            <TextView
+                                android:id="@+id/fontTester"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginRight="8dp"
+                                android:layout_marginBottom="8dp"
+                                android:layout_weight="20"
+                                android:gravity="bottom"
+                                android:text="Project Enda"
+                                android:textColor="@color/black"
+                                android:textSize="24sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </android.support.v7.widget.CardView>
+
+                <TextView
+                    android:id="@+id/changeCountry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_weight="1"
+                    android:gravity="bottom"
+                    android:text="Change Nationality"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="18sp" />
+
+                <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <Spinner
+                        android:id="@+id/nationalitySpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp" />
+                </android.support.v7.widget.CardView>
+            </LinearLayout>
+        </ScrollView>
 
     </RelativeLayout>
 

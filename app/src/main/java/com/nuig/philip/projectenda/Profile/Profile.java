@@ -42,14 +42,10 @@ import com.nuig.philip.projectenda.Tasks.Animations;
 import com.nuig.philip.projectenda.Tasks.HistoryLoader;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Locations;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import io.grpc.okhttp.internal.Platform;
-
+    //todo make this page adaptable to view other profiles
 
 public class Profile extends AppCompatActivity {
 
@@ -99,11 +95,10 @@ public class Profile extends AppCompatActivity {
         });
 
         TextView profileName = findViewById(R.id.nameText);
-        profileName.setText(user.getDisplayName());
         final TextView points_text = findViewById(R.id.profile_points);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         userDoc = database.collection("users").document(user.getUid());
-        getUserInfo(points_text);
+        getUserInfo(profileName, points_text);
         points_text.setOnClickListener( new View.OnClickListener()
         {
             public void onClick(View v){
@@ -210,9 +205,12 @@ public class Profile extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                                 history = task.getResult().getDocuments();
+                                if(mostRecent) {
+                                    history = Lists.reverse(history);
+                                }
                                 createGridView();
                                 getProfilePicture();
-                                getUserInfo((TextView) findViewById(R.id.profile_points));
+                                getUserInfo((TextView) findViewById(R.id.nameText), (TextView) findViewById(R.id.profile_points));
                             }
                         });
                 pullToRefresh.setRefreshing(false);
@@ -244,7 +242,7 @@ public class Profile extends AppCompatActivity {
         } catch (Exception e){}
     }
 
-    public void getUserInfo(final TextView points_text) {
+    public void getUserInfo(final TextView username, final TextView points_text) {
         userDoc.get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -253,6 +251,7 @@ public class Profile extends AppCompatActivity {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
                                 points_text.setText(document.getData().get("points").toString()+" points");
+                                username.setText(FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
                                 font = document.getData().get("font").toString();
                                 if(historyArray != null) {
                                     createGridView();
@@ -271,7 +270,7 @@ public class Profile extends AppCompatActivity {
         historyArray = new Locations[history.size()];
         for(int i=0; i<history.size(); i++) {
             Map ref = history.get(i).getData();
-            historyArray[i] = new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), new SimpleDateFormat("HH:mm:ss").format(new Date()), (String)ref.get("wiki"), (String)ref.get("imgURL"), (Double)ref.get("latitude"), (Double)ref.get("longitude"), (String)ref.get("info"));
+            historyArray[i] = new Locations( (String)ref.get("name"), (String)ref.get("date"), (String) ref.get("time"), (String)ref.get("wiki"), (String)ref.get("imgURL"), (Double)ref.get("latitude"), (Double)ref.get("longitude"), (String)ref.get("info"));
             locationsAdapter = new HistoryLoader(Profile.this, historyArray, font);
             gridView.setAdapter(locationsAdapter);
         }

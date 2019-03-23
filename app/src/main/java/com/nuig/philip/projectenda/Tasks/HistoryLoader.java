@@ -1,11 +1,20 @@
 package com.nuig.philip.projectenda.Tasks;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -24,7 +33,15 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.nuig.philip.projectenda.Challenge_Page.Challenge_fragment;
+import com.nuig.philip.projectenda.Challenge_Page.MainActivity;
 import com.nuig.philip.projectenda.R;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class HistoryLoader extends BaseAdapter {
 
@@ -33,6 +50,7 @@ public class HistoryLoader extends BaseAdapter {
     private String font;
     static Boolean frontShowing;
     private GoogleMap googleMap;
+    private View cardView;
 
     public HistoryLoader(Context context, Locations[] locations, String font) {
         this.Context = context;
@@ -227,16 +245,17 @@ public class HistoryLoader extends BaseAdapter {
         return cardView;
     }
 
-    public View getDialog(Locations[] position, ViewGroup parent, View dialog, final Bundle savedInstanceState) {
+    public View getLocationCard(Locations[] position, final Activity activity, final Context context, final Challenge_fragment challenge_fragment, final ViewGroup parent, View dialog, final Bundle savedInstanceState) {
         frontShowing = true;
         final Locations loc = position[0];
         final View dialogView = dialog;
         final LayoutInflater layoutInflater = LayoutInflater.from(Context);
-        final View cardView = layoutInflater.inflate(R.layout.layout_history_location, null);
+        cardView = layoutInflater.inflate(R.layout.layout_history_location, null);
         final CardView locationCard = (CardView)cardView.findViewById(R.id.cardView);
 
         final LinearLayout frontCard = cardView.findViewById(R.id.frontCard);
         final ImageView locationImage = (ImageView)cardView.findViewById(R.id.location_image);
+        final FloatingActionButton customImageBtn = cardView.findViewById(R.id.custom_image_btn);
         final TextView locationName = (TextView)cardView.findViewById(R.id.location_name);
         final TextView date = (TextView)cardView.findViewById(R.id.location_date);
 
@@ -279,6 +298,19 @@ public class HistoryLoader extends BaseAdapter {
                 .centerCrop()
                 .placeholder(R.drawable.loading_image)
                 .into(locationImage);
+        customImageBtn.show();
+        if(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
+            customImageBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    Uri file = Uri.fromFile(new File("storage/emulated/0/Android/data/com.nuig.philip.projectenda/cache/pickImageResult.jpeg"));
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, file);
+                    activity.startActivityForResult(intent, 7593);
+                }
+            });
+        }
         locationName.setText(loc.getName());
         locationName.setTextSize(28);
         date.setTextSize(14);
@@ -365,6 +397,11 @@ public class HistoryLoader extends BaseAdapter {
         frontCard.setVisibility(View.GONE);
         backCard.setVisibility(View.VISIBLE);
         frontShowing = false;
+    }
+
+    public void setCustomImage(Bitmap bitmap) {
+        ImageView locationImage = cardView.findViewById(R.id.location_image);
+        locationImage.setImageBitmap(bitmap);
     }
 
 }

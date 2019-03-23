@@ -3,11 +3,15 @@ package com.nuig.philip.projectenda.Challenge_Page;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.nfc.FormatException;
 import android.nfc.NdefMessage;
 import android.nfc.tech.Ndef;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.CardView;
@@ -20,25 +24,35 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.nuig.philip.projectenda.Tasks.Animations;
 import com.nuig.philip.projectenda.Tasks.HistoryLoader;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Locations;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 import com.nuig.philip.projectenda.R;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
+
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 public class Challenge_fragment extends DialogFragment {
 
@@ -49,9 +63,10 @@ public class Challenge_fragment extends DialogFragment {
     private FirebaseUser auth;
     private FirebaseFirestore database;
     private InternetConnection broadcastReceiver;
-    private String challengeImgUrl, challengeNum, font;
+    private String challengeImgUrl, challengeNum, font, locationDocumentPath;
     private DocumentReference userDoc, challengeDoc;
     private Bundle sIS;
+    private HistoryLoader locationsAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -59,6 +74,9 @@ public class Challenge_fragment extends DialogFragment {
         auth = FirebaseAuth.getInstance().getCurrentUser();
         sIS = savedInstanceState;
         refreshDocuments();
+
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
 
         view.findViewById(R.id.challenge_help).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,6 +112,8 @@ public class Challenge_fragment extends DialogFragment {
                         font = document.getData().get("font").toString();
                         challengeNum = document.getData().get("challenge#").toString();
                         challengeDoc = database.collection("challenges").document("challenge"+challengeNum);
+                        //todo add random challenge selection
+                        //todo only display locations within selected distance
                         challengeDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -152,9 +172,9 @@ public class Challenge_fragment extends DialogFragment {
 
                                         Map ref = document.getData();
                                         final Locations[] completed = {new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), new SimpleDateFormat("HH:mm:ss").format(new Date()), (String)ref.get("wikiUrl"), (String)ref.get("imgUrl"), (Double)ref.get("lat"), (Double)ref.get("long"), (String)ref.get("extract"))};
-                                        final HistoryLoader locationsAdapter = new HistoryLoader(getActivity(), completed, font);
+                                        locationsAdapter = new HistoryLoader(getActivity(), completed, font);
                                         Dialog dialog = new Dialog(getActivity());
-                                        dialog.setContentView(locationsAdapter.getDialog(completed, (ViewGroup) view, dialog.getWindow().getDecorView(), sIS));
+                                        dialog.setContentView(locationsAdapter.getLocationCard(completed, getActivity(), getContext(), Challenge_fragment.this, (ViewGroup) view, dialog.getWindow().getDecorView(), sIS));
                                         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
                                         layoutParams.copyFrom(dialog.getWindow().getAttributes());
                                         layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
@@ -187,7 +207,8 @@ public class Challenge_fragment extends DialogFragment {
                                                         Log.w(TAG, "Error updating points", e);
                                                     }
                                                 });
-                                        userDoc.collection("history").document(new SimpleDateFormat("yyyy:MM:dd").format(new Date()) + " " +new SimpleDateFormat("HH:mm:ss").format(new Date())).set(completed[0]);
+                                        locationDocumentPath = new SimpleDateFormat("yyyy:MM:dd").format(new Date()) + " " +new SimpleDateFormat("HH:mm:ss").format(new Date());
+                                        userDoc.collection("history").document(locationDocumentPath).set(completed[0]);
                                     }
                                     else {
                                         Toasts.failToast("Tag does not match current challenge", getActivity(), Toast.LENGTH_LONG);
@@ -211,6 +232,35 @@ public class Challenge_fragment extends DialogFragment {
         } catch (IOException | FormatException e) {
             e.printStackTrace();
 
+        }
+    }
+
+    public void setCustomImage(Bitmap bitmap, Uri filePath) {
+        locationsAdapter.setCustomImage(bitmap);
+        if(filePath != null){
+            final StorageReference ref = FirebaseStorage.getInstance().getReference().child("Users/"+auth.getUid()+"/PersonalLocationImages/"+ UUID.randomUUID().toString());
+            ref.putFile(filePath)
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toasts.failToast("Error uploading image", getActivity(), Toast.LENGTH_SHORT);
+                        }
+                    })
+                    .continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                        @Override
+                        public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                            return ref.getDownloadUrl();
+                        }
+                    })
+                    .addOnCompleteListener(new OnCompleteListener<Uri>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Uri> task) {
+                            if (task.isSuccessful()) {
+                                userDoc.collection("history").document(locationDocumentPath).update("imgURL", task.getResult().toString());
+                                Toasts.successToast("Personal picture saved!", getActivity(), Toast.LENGTH_SHORT);
+                            }
+                        }
+                    });
         }
     }
 
