@@ -21,9 +21,9 @@ public class InternetConnection extends BroadcastReceiver {
     private ImageView view;
     private String URL;
 
-    public InternetConnection(Activity act, ImageView v, String url) {
-        this.activity = act;
-        this.view = v;
+    public InternetConnection(Activity activity, ImageView view, String url) {
+        this.activity = activity;
+        this.view = view;
         this.URL = url;
     }
 

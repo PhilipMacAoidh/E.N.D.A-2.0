@@ -3,6 +3,7 @@ package com.nuig.philip.projectenda.Challenge_Page;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
@@ -39,6 +40,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.nuig.philip.projectenda.Tasks.Animations;
+import com.nuig.philip.projectenda.Tasks.ChallengeLoader;
 import com.nuig.philip.projectenda.Tasks.HistoryLoader;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Locations;
@@ -62,8 +64,9 @@ public class Challenge_fragment extends DialogFragment {
     private boolean helpOpen = false;
     private FirebaseUser auth;
     private FirebaseFirestore database;
-    private InternetConnection broadcastReceiver;
-    private String challengeImgUrl, challengeNum, font, locationDocumentPath;
+    private static InternetConnection broadcastReceiver;
+    private String challengeImgUrl, font, locationDocumentPath;
+    private static String challengeID;
     private DocumentReference userDoc, challengeDoc;
     private Bundle sIS;
     private HistoryLoader locationsAdapter;
@@ -73,7 +76,7 @@ public class Challenge_fragment extends DialogFragment {
         view = inflater.inflate(R.layout.fragment_challenge, container, false);
         auth = FirebaseAuth.getInstance().getCurrentUser();
         sIS = savedInstanceState;
-        refreshDocuments();
+        new ChallengeLoader(Challenge_fragment.this, false);
 
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
@@ -97,6 +100,8 @@ public class Challenge_fragment extends DialogFragment {
         filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         getActivity().registerReceiver(broadcastReceiver, filter);
 
+        refreshDocuments();
+
         return view;
     }
 
@@ -110,10 +115,8 @@ public class Challenge_fragment extends DialogFragment {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
                         font = document.getData().get("font").toString();
-                        challengeNum = document.getData().get("challenge#").toString();
-                        challengeDoc = database.collection("challenges").document("challenge"+challengeNum);
-                        //todo add random challenge selection
-                        //todo only display locations within selected distance
+                        challengeID = document.getData().get("challenge#").toString();
+                        challengeDoc = database.collection("challenges").document(challengeID);
                         challengeDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -126,7 +129,7 @@ public class Challenge_fragment extends DialogFragment {
                                                 .placeholder(R.drawable.loading_image)
                                                 .into((ImageView) view.findViewById(R.id.challenge_image));
                                     } else {
-                                        Log.d(TAG, "Cannot located document: challenge"+challengeNum);
+                                        Log.d(TAG, "Cannot located document: " + challengeID);
                                     }
                                 } else {
                                     Log.d(TAG, "get failed with ", task.getException());
@@ -144,10 +147,6 @@ public class Challenge_fragment extends DialogFragment {
     }
 
     public void onNfcDetected(Ndef ndef, MainActivity main){
-        readFromNFC(ndef, main);
-    }
-
-    private void readFromNFC(Ndef ndef, MainActivity main) {
 
         try {
             ndef.connect();
@@ -169,7 +168,6 @@ public class Challenge_fragment extends DialogFragment {
                                 if (document.exists()) {
                                     if (message.equals(document.getData().get("code").toString())) {
                                         Toasts.successToast("Congratulations", getActivity(), Toast.LENGTH_SHORT);
-
                                         Map ref = document.getData();
                                         final Locations[] completed = {new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), new SimpleDateFormat("HH:mm:ss").format(new Date()), (String)ref.get("wikiUrl"), (String)ref.get("imgUrl"), (Double)ref.get("lat"), (Double)ref.get("long"), (String)ref.get("extract"))};
                                         locationsAdapter = new HistoryLoader(getActivity(), completed, font);
@@ -180,8 +178,6 @@ public class Challenge_fragment extends DialogFragment {
                                         layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
                                         dialog.show();
                                         dialog.getWindow().setAttributes(layoutParams);
-
-                                        String newNum = String.valueOf(Integer.parseInt(challengeNum)+1);
                                         userDoc.get()
                                                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                                     @Override
@@ -194,19 +190,7 @@ public class Challenge_fragment extends DialogFragment {
                                                         }
                                                     }
                                                 });
-                                        userDoc.update("challenge#", newNum)
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        refreshDocuments();
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-                                                        Log.w(TAG, "Error updating points", e);
-                                                    }
-                                                });
+                                        new ChallengeLoader(Challenge_fragment.this, true);
                                         locationDocumentPath = new SimpleDateFormat("yyyy:MM:dd").format(new Date()) + " " +new SimpleDateFormat("HH:mm:ss").format(new Date());
                                         userDoc.collection("history").document(locationDocumentPath).set(completed[0]);
                                     }
@@ -214,8 +198,6 @@ public class Challenge_fragment extends DialogFragment {
                                         Toasts.failToast("Tag does not match current challenge", getActivity(), Toast.LENGTH_LONG);
                                     }
 
-                                } else {
-                                    Log.d(TAG, "Cannot located document: challenge"+challengeNum);
                                 }
                             } else {
                                 Log.d(TAG, "get failed with ", task.getException());
@@ -264,7 +246,7 @@ public class Challenge_fragment extends DialogFragment {
         }
     }
 
-    public void  openNFCHelp() {
+    public void openNFCHelp() {
         CardView cardView = view.findViewById(R.id.cardView);
 
         Animations.leftToRightFlip(cardView).addListener(new AnimatorListenerAdapter() {
@@ -280,7 +262,7 @@ public class Challenge_fragment extends DialogFragment {
         });
     }
 
-    public void  closeNFCHelp() {
+    public void closeNFCHelp() {
         CardView cardView = view.findViewById(R.id.cardView);
 
         Animations.rightToLeftFlip(cardView).addListener(new AnimatorListenerAdapter() {

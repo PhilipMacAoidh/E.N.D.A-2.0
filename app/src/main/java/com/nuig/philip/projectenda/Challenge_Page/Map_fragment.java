@@ -44,6 +44,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.nuig.philip.projectenda.R;
+import com.nuig.philip.projectenda.Tasks.ChallengeLoader;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 
 public class Map_fragment extends Fragment {
@@ -51,7 +52,7 @@ public class Map_fragment extends Fragment {
     public static final String TAG = Map_fragment.class.getSimpleName();
     MapView mMapView;
     private GoogleMap googleMap;
-    private LatLng currentLocation, destLocation;
+    private static LatLng currentLocation, destLocation;
     private View rootView = null;
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private FirebaseUser user;
@@ -118,6 +119,8 @@ public class Map_fragment extends Fragment {
                                 if(currentLocation==null)
                                 {
                                     setCurrentLocation(new LatLng(arg0.getLatitude(), arg0.getLongitude()));
+                                    //needs to run when location changes
+                                    new ChallengeLoader(null,true);
                                     googleMap.addCircle(new CircleOptions()
                                             .center(new LatLng(arg0.getLatitude(), arg0.getLongitude()))
                                             .radius(searchDistance * 1000) //measures in meters, *1000 of whatever user set
@@ -200,5 +203,9 @@ public class Map_fragment extends Fragment {
 
     public void setCurrentLocation(LatLng point) {
        currentLocation = point;
+    }
+
+    public static LatLng getCurrentLocation() {
+        return currentLocation;
     }
 }

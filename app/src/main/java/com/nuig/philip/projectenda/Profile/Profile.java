@@ -144,9 +144,6 @@ public class Profile extends AppCompatActivity {
                         history = task.getResult().getDocuments();
                         history = Lists.reverse(history);
                         createGridView();
-                        if(task.getResult().getDocuments().listIterator().hasNext()) {
-                            task.getResult().getDocuments().listIterator().next();
-                        }
                     }
                 });
         gridView = (GridView)findViewById(R.id.profileHistory);

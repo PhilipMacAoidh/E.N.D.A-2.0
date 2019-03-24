@@ -41,6 +41,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.nuig.philip.projectenda.Challenge_Page.MainActivity;
+import com.nuig.philip.projectenda.Tasks.ChallengeLoader;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 import com.nuig.philip.projectenda.R;
@@ -51,8 +52,6 @@ import java.io.IOException;
 import java.util.UUID;
 
 public class Settings extends AppCompatActivity {
-
-    //Todo update UI
 
     private Toolbar toolbar;
     private Uri filePath;
@@ -360,6 +359,7 @@ public class Settings extends AppCompatActivity {
                 }
                 if(distanceChanged) {
                     userDoc.update("distance", newDistance);
+                    new ChallengeLoader(null, true);
                 }
                 if(fontChanged) {
                     userDoc.update("font", newFont);
