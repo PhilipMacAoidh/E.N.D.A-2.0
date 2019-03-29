@@ -37,7 +37,7 @@ import java.io.File;
 
 public class HistoryLoader extends BaseAdapter {
 
-    private Context Context;
+    private Context context;
     private Locations[] locations;
     private String font;
     static Boolean frontShowing;
@@ -45,7 +45,7 @@ public class HistoryLoader extends BaseAdapter {
     private View cardView;
 
     public HistoryLoader(Context context, Locations[] locations, String font) {
-        this.Context = context;
+        this.context = context;
         this.locations = locations;
         if (font == null){
             this.font = "none";
@@ -75,7 +75,7 @@ public class HistoryLoader extends BaseAdapter {
         ViewGroup activity = parent;
 
         if (convertView == null) {
-            final LayoutInflater layoutInflater = LayoutInflater.from(Context);
+            final LayoutInflater layoutInflater = LayoutInflater.from(context);
             convertView = layoutInflater.inflate(R.layout.layout_history_location, null);
         }
 
@@ -133,7 +133,7 @@ public class HistoryLoader extends BaseAdapter {
         frontShowing = true;
         final Locations loc = locations[position];
         final View dialogView = dialog;
-        final LayoutInflater layoutInflater = LayoutInflater.from(Context);
+        final LayoutInflater layoutInflater = LayoutInflater.from(context);
         final View cardView = layoutInflater.inflate(R.layout.layout_history_location, null);
         final CardView locationCard = (CardView)cardView.findViewById(R.id.cardView);
 
@@ -230,7 +230,7 @@ public class HistoryLoader extends BaseAdapter {
         {
             public void onClick(View v){
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(loc.getWiki()));
-                Context.startActivity(browserIntent);
+                context.startActivity(browserIntent);
             }
         });
 
@@ -241,7 +241,7 @@ public class HistoryLoader extends BaseAdapter {
         frontShowing = true;
         final Locations loc = position[0];
         final View dialogView = dialog;
-        final LayoutInflater layoutInflater = LayoutInflater.from(Context);
+        final LayoutInflater layoutInflater = LayoutInflater.from(context);
         cardView = layoutInflater.inflate(R.layout.layout_history_location, null);
         final CardView locationCard = (CardView)cardView.findViewById(R.id.cardView);
 
@@ -295,11 +295,10 @@ public class HistoryLoader extends BaseAdapter {
             customImageBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    Uri file = Uri.fromFile(new File("storage/emulated/0/Android/data/com.nuig.philip.projectenda/cache/pickImageResult.jpeg"));
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, file);
-                    activity.startActivityForResult(intent, 7593);
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                Uri file = Uri.fromFile(new File("storage/emulated/0/Android/data/com.nuig.philip.projectenda/cache/pickImageResult.jpeg"));
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, file);
+                activity.startActivityForResult(intent, 7593);
                 }
             });
         }
@@ -352,7 +351,7 @@ public class HistoryLoader extends BaseAdapter {
         {
             public void onClick(View v){
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(loc.getWiki()));
-                Context.startActivity(browserIntent);
+                context.startActivity(browserIntent);
             }
         });
 

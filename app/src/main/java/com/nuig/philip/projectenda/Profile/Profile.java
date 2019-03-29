@@ -263,19 +263,17 @@ public class Profile extends AppCompatActivity {
         for(int i=0; i<history.size(); i++) {
             Map ref = history.get(i).getData();
             historyArray[i] = new Locations( (String)ref.get("name"), (String)ref.get("date"), (String) ref.get("time"), (String)ref.get("wiki"), (String)ref.get("imgURL"), (Double)ref.get("latitude"), (Double)ref.get("longitude"), (String)ref.get("info"));
-            locationsAdapter = new HistoryLoader(Profile.this, historyArray, font);
-            gridView.setAdapter(locationsAdapter);
         }
+        locationsAdapter = new HistoryLoader(Profile.this, historyArray, font);
+        gridView.setAdapter(locationsAdapter);
     }
 
     public void getProfilePicture() {
         try {
             Glide.with(this).load(user.getPhotoUrl().toString())
-                    .placeholder(R.drawable.loading_image)
+                    .placeholder(R.mipmap.launcher_icon_round)
                     .into((ImageView) findViewById(R.id.profilePicture));
         } catch (Exception e){
-            ((ImageView) findViewById(R.id.profilePicture)).setImageResource(R.mipmap.launcher_icon_round);
-            ((ImageView) findViewById(R.id.profilePicture)).setBackgroundResource(R.color.transparent);
         }
     }
 

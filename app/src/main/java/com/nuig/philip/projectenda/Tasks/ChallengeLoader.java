@@ -14,7 +14,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.nuig.philip.projectenda.Challenge_Page.Challenge_fragment;
 import com.nuig.philip.projectenda.Challenge_Page.Map_fragment;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +50,10 @@ public class ChallengeLoader {
                 @Override
                 public void onComplete(@NonNull Task<QuerySnapshot> task) {
                     challengeList = task.getResult().getDocuments();
-                    isLocationWithinDistance();
+                    if(!challengeList.isEmpty()) {
+                        Log.i("Search", "ChallengeList fetched");
+                        isLocationWithinDistance();
+                    }
                 }
             });
     }
@@ -59,11 +61,8 @@ public class ChallengeLoader {
     private void isLocationWithinDistance() {
         challengeList = Maths.getDistance(challengeList, currentLocation, userDistance);
         if(!challengeList.isEmpty()) {
+            Log.i("Search", "ChallengeList not Empty");
             getSkipped();
-        }
-        else {
-            userDoc.update("challenge#", "VhIzRahC4NTJ2GJFAnKn");
-            fragment.refreshDocuments();
         }
     }
 
@@ -72,9 +71,8 @@ public class ChallengeLoader {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 skippedList = task.getResult().getDocuments();
-                if(skippedList!=null) {
-                    getHistory();
-                }
+                Log.i("Search", "SkipList:"+skippedList.toString());
+                getHistory();
             }
         });
     }
@@ -101,11 +99,13 @@ public class ChallengeLoader {
                 }
             }
         }
-        for (int i=0; i<skippedList.size(); i++) {
-            skippedList.get(i).getId();
-            for (int j=0; j<challengeList.size(); j++) {
-                if(skippedList.get(i).getId().equals(challengeList.get(j).getId())){
-                    challengeList.remove(j);
+        if(!skippedList.isEmpty()){
+            for (int i=0; i<skippedList.size(); i++) {
+                skippedList.get(i).getId();
+                for (int j=0; j<challengeList.size(); j++) {
+                    if(skippedList.get(i).getId().equals(challengeList.get(j).getId())){
+                        challengeList.remove(j);
+                    }
                 }
             }
         }
@@ -115,8 +115,9 @@ public class ChallengeLoader {
     private void setChallenge() {
         if(challengeList.size() != 0) {
             userDoc.update("challenge#", challengeList.get(0).getId());
-        } else {
-            userDoc.update("challenge#", "VhIzRahC4NTJ2GJFAnKn");
+        }
+        else {
+            userDoc.update("challenge#", "");
         }
         fragment.refreshDocuments();
     }

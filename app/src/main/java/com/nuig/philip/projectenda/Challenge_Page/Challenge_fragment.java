@@ -52,8 +52,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-//TODO skip challenge
-
 public class Challenge_fragment extends DialogFragment {
 
     public static final String TAG = Challenge_fragment.class.getSimpleName();
@@ -112,8 +110,12 @@ public class Challenge_fragment extends DialogFragment {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
                                 challengeID = document.getData().get("challenge#").toString();
-                                userDoc.collection("skipped").document(challengeID).set(new HashMap<>());
-                                new ChallengeLoader(null, true);
+                                if(challengeID != ""){
+                                    userDoc.collection("skipped").document(challengeID).set(new HashMap<>());
+                                    new ChallengeLoader(null, true);
+                                }else {
+                                    Toasts.failToast("No Challenge to skip! Increase distance range", getActivity(), Toast.LENGTH_SHORT);
+                                }
                             } else {
                                 Log.d(TAG, "No document found with this userID");
                             }
@@ -154,26 +156,33 @@ public class Challenge_fragment extends DialogFragment {
                     if (document.exists()) {
                         font = document.getData().get("font").toString();
                         challengeID = document.getData().get("challenge#").toString();
-                        challengeDoc = database.collection("challenges").document(challengeID);
-                        challengeDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
-                                        challengeImgUrl = document.getData().get("challengeUrl").toString();
-                                        Glide.with(getActivity()).load(challengeImgUrl)
-                                                .centerCrop()
-                                                .placeholder(R.drawable.loading_image)
-                                                .into((ImageView) view.findViewById(R.id.challenge_image));
+                        if(challengeID != "") {
+                            challengeDoc = database.collection("challenges").document(challengeID);
+                            challengeDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        DocumentSnapshot document = task.getResult();
+                                        if (document.exists()) {
+                                            challengeImgUrl = document.getData().get("challengeUrl").toString();
+                                            Glide.with(getActivity()).load(challengeImgUrl)
+                                                    .centerCrop()
+                                                    .placeholder(R.drawable.no_challenge_image)
+                                                    .into((ImageView) view.findViewById(R.id.challenge_image));
+                                        } else {
+                                            Log.d(TAG, "Cannot locate document: " + challengeID);
+                                        }
                                     } else {
-                                        Log.d(TAG, "Cannot locate document: " + challengeID);
+                                        Log.d(TAG, "get failed with ", task.getException());
                                     }
-                                } else {
-                                    Log.d(TAG, "get failed with ", task.getException());
                                 }
-                            }
-                        });
+                            });
+                        } else {
+                            Glide.with(getActivity()).load("")
+                                    .centerCrop()
+                                    .placeholder(R.drawable.no_challenge_image)
+                                    .into((ImageView) view.findViewById(R.id.challenge_image));
+                        }
                     } else {
                         Log.d(TAG, "No document found with this userID");
                     }
