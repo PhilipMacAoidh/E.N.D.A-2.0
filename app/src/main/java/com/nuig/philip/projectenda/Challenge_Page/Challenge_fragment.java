@@ -3,8 +3,6 @@ package com.nuig.philip.projectenda.Challenge_Page;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -15,6 +13,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,14 +27,13 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -46,15 +44,15 @@ import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Locations;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 import com.nuig.philip.projectenda.R;
-import com.theartofdev.edmodo.cropper.CropImage;
-import com.theartofdev.edmodo.cropper.CropImageView;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+//TODO skip challenge
 
 public class Challenge_fragment extends DialogFragment {
 
@@ -70,6 +68,7 @@ public class Challenge_fragment extends DialogFragment {
     private DocumentReference userDoc, challengeDoc;
     private Bundle sIS;
     private HistoryLoader locationsAdapter;
+    private SwipeRefreshLayout pullToRefresh;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -92,6 +91,7 @@ public class Challenge_fragment extends DialogFragment {
             }
         });
 
+
         view.findViewById(R.id.help_image).setMinimumHeight(view.findViewById(R.id.challenge_image).getMeasuredWidth());
         view.findViewById(R.id.help_image).setMinimumWidth(view.findViewById(R.id.challenge_image).getMeasuredWidth());
 
@@ -101,6 +101,44 @@ public class Challenge_fragment extends DialogFragment {
         getActivity().registerReceiver(broadcastReceiver, filter);
 
         refreshDocuments();
+
+        view.findViewById(R.id.skip_challenge).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                challengeID = document.getData().get("challenge#").toString();
+                                userDoc.collection("skipped").document(challengeID).set(new HashMap<>());
+                                new ChallengeLoader(null, true);
+                            } else {
+                                Log.d(TAG, "No document found with this userID");
+                            }
+                        } else {
+                            Log.d(TAG, "get failed with ", task.getException());
+                        }
+                    }
+                });
+            }
+        });
+
+        pullToRefresh = view.findViewById(R.id.pullToRefreshChallenge);
+        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                userDoc.collection("history").get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                new ChallengeLoader(null, true);
+                                pullToRefresh.setRefreshing(false);
+                            }
+                        });
+            }
+        });
 
         return view;
     }
@@ -129,7 +167,7 @@ public class Challenge_fragment extends DialogFragment {
                                                 .placeholder(R.drawable.loading_image)
                                                 .into((ImageView) view.findViewById(R.id.challenge_image));
                                     } else {
-                                        Log.d(TAG, "Cannot located document: " + challengeID);
+                                        Log.d(TAG, "Cannot locate document: " + challengeID);
                                     }
                                 } else {
                                     Log.d(TAG, "get failed with ", task.getException());
