@@ -51,7 +51,6 @@ public class ChallengeLoader {
                 public void onComplete(@NonNull Task<QuerySnapshot> task) {
                     challengeList = task.getResult().getDocuments();
                     if(!challengeList.isEmpty()) {
-                        Log.i("Search", "ChallengeList fetched");
                         isLocationWithinDistance();
                     }
                 }
@@ -61,7 +60,6 @@ public class ChallengeLoader {
     private void isLocationWithinDistance() {
         challengeList = Maths.getDistance(challengeList, currentLocation, userDistance);
         if(!challengeList.isEmpty()) {
-            Log.i("Search", "ChallengeList not Empty");
             getSkipped();
         }
     }
@@ -71,7 +69,6 @@ public class ChallengeLoader {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 skippedList = task.getResult().getDocuments();
-                Log.i("Search", "SkipList:"+skippedList.toString());
                 getHistory();
             }
         });
@@ -119,6 +116,8 @@ public class ChallengeLoader {
         else {
             userDoc.update("challenge#", "");
         }
-        fragment.refreshDocuments();
+        if(fragment != null) {
+            fragment.refreshDocuments();
+        }
     }
 }
