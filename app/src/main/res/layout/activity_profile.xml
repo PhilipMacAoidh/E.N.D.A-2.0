@@ -121,21 +121,31 @@
         </android.support.constraint.ConstraintLayout>
 
         <LinearLayout
+            android:id="@+id/historyLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             tools:layout_editor_absoluteY="200dp">
 
             <TextView
-                android:id="@+id/historyLabel"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@color/backgroundMaterialLight"
                 android:paddingLeft="16dp"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"
-                android:text="History &#8595;"
+                android:text="History "
                 android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/historyDirection"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="right|center_vertical"
+                android:paddingRight="8dp"
+                android:text="(Newest First)" />
+
         </LinearLayout>
 
         <android.support.v4.widget.SwipeRefreshLayout

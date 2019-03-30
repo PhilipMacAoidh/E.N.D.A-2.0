@@ -1,8 +1,6 @@
 package com.nuig.philip.projectenda.Challenge_Page;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -18,21 +16,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -42,16 +33,15 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 import com.nuig.philip.projectenda.R;
-import com.nuig.philip.projectenda.Tasks.Toasts;
+import com.nuig.philip.projectenda.Tasks.ChallengeLoader;
 
 public class Map_fragment extends Fragment {
 
     public static final String TAG = Map_fragment.class.getSimpleName();
     MapView mMapView;
     private GoogleMap googleMap;
-    private LatLng currentLocation, destLocation;
+    private static LatLng currentLocation, destLocation;
     private View rootView = null;
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private FirebaseUser user;
@@ -118,6 +108,8 @@ public class Map_fragment extends Fragment {
                                 if(currentLocation==null)
                                 {
                                     setCurrentLocation(new LatLng(arg0.getLatitude(), arg0.getLongitude()));
+                                    //needs to run when location changes
+                                    new ChallengeLoader(null,true);
                                     googleMap.addCircle(new CircleOptions()
                                             .center(new LatLng(arg0.getLatitude(), arg0.getLongitude()))
                                             .radius(searchDistance * 1000) //measures in meters, *1000 of whatever user set
@@ -150,10 +142,6 @@ public class Map_fragment extends Fragment {
                                     .fillColor(Color.argb(80, 251, 140, 0))
                             );
                         }
-                        // Create location object
-//                        Location location = new Location(point.latitude, point.longitude);
-                        // add location to SQLite database
-//                        locationsDB.insert(location);
                     }
                 });
             }
@@ -204,5 +192,9 @@ public class Map_fragment extends Fragment {
 
     public void setCurrentLocation(LatLng point) {
        currentLocation = point;
+    }
+
+    public static LatLng getCurrentLocation() {
+        return currentLocation;
     }
 }

@@ -11,7 +11,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -84,9 +83,6 @@ public class SignIn extends AppCompatActivity {
         btnBack = (Button) findViewById(R.id.back_btn);
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
-
-        //Get Firebase auth instance
-        auth = FirebaseAuth.getInstance();
 
         loginIcon.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -218,8 +214,7 @@ public class SignIn extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<Uri> task) {
                             if (task.isSuccessful()) {
-                                Log.i("ME", task.getResult().toString());
-
+                                FirebaseFirestore.getInstance().collection("users").document(auth.getCurrentUser().getUid()).update("imgUrl", task.getResult().toString());
                                 UserProfileChangeRequest addImageURL = new UserProfileChangeRequest.Builder()
                                         .setPhotoUri(task.getResult())
                                         .build();
@@ -335,9 +330,6 @@ public class SignIn extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         progressBar.setVisibility(View.GONE);
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
                             Toasts.failToast(task.getException().getMessage(), SignIn.this, Toast.LENGTH_SHORT);
                         } else {
@@ -350,7 +342,10 @@ public class SignIn extends AppCompatActivity {
                             user.put("challenge#", 1);
                             user.put("distance", 1);
                             user.put("points", 0);
-                            user.put("fonts", "none");
+                            user.put("font", "none");
+                            user.put("name", username);
+                            user.put("country", "Ireland");
+                            user.put("imgUrl", "");
                             database.collection("users").document(auth.getCurrentUser().getUid()).set(user);
                             auth.getCurrentUser().updateProfile(profileCreation)
                                     .addOnCompleteListener(new OnCompleteListener<Void>() {

@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -23,6 +24,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.common.collect.Lists;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -35,29 +37,26 @@ import com.nuig.philip.projectenda.Tasks.Animations;
 import com.nuig.philip.projectenda.Tasks.HistoryLoader;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Locations;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+    //todo make this page adaptable to view other profiles
 
 public class Profile extends AppCompatActivity {
-
-    //todo add history text above gridview
 
     private Toolbar toolbar;
     private InternetConnection broadcastReceiver;
     private FirebaseUser user;
     private int myLastVisiblePos;
     private Integer originalHeights[];
-    private Boolean firstRunDown = true, firstRunUp = false, heightGather = true;
+    private Boolean firstRunDown = true, firstRunUp = false, heightGather = true, mostRecent = true;
     private Locations[] historyArray;
     private HistoryLoader locationsAdapter;
     private GridView gridView;
     private String font;
     private List<DocumentSnapshot> history;
     private DocumentReference userDoc;
+    private SwipeRefreshLayout pullToRefresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,15 +90,45 @@ public class Profile extends AppCompatActivity {
         });
 
         TextView profileName = findViewById(R.id.nameText);
-        profileName.setText(user.getDisplayName());
         final TextView points_text = findViewById(R.id.profile_points);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         userDoc = database.collection("users").document(user.getUid());
-        getUserInfo(points_text);
+        getUserInfo(profileName, points_text);
         points_text.setOnClickListener( new View.OnClickListener()
         {
             public void onClick(View v){
                 goto_leaderboards(v);
+            }
+        });
+
+        final TextView historyDirection = findViewById(R.id.historyDirection);
+        findViewById(R.id.historyLabel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mostRecent) {
+                    mostRecent = false;
+                    historyDirection.setText("(Oldest First)");
+                }
+                else if (!mostRecent) {
+                    mostRecent = true;
+                    historyDirection.setText("(Newest First)");
+                }
+                history = Lists.reverse(history);
+                Animation fade = Animations.fadeOutAnimation(gridView);
+                fade.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {}
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        gridView.setVisibility(View.INVISIBLE);
+                        createGridView();
+                        Animations.fadeInAnimation(gridView);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
             }
         });
 
@@ -108,10 +137,8 @@ public class Profile extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         history = task.getResult().getDocuments();
+                        history = Lists.reverse(history);
                         createGridView();
-                        if(task.getResult().getDocuments().listIterator().hasNext()) {
-                            task.getResult().getDocuments().listIterator().next();
-                        }
                     }
                 });
         gridView = (GridView)findViewById(R.id.profileHistory);
@@ -136,7 +163,7 @@ public class Profile extends AppCompatActivity {
                 }
                 if(currentFirstVisPos < myLastVisiblePos) {
                     //scroll up
-                    if(firstRunUp) {
+                    if(firstRunUp && !Animations.animationRunning) {
                         Animations.expandProfileHeader(findViewById(R.id.profileHeader), findViewById(R.id.historyLabel), findViewById(R.id.profileHistory), originalHeights[0], originalHeights[1], originalHeights[2]);
                         firstRunUp = false;
                         firstRunDown = true;
@@ -161,7 +188,7 @@ public class Profile extends AppCompatActivity {
             }
         });
 
-        final SwipeRefreshLayout pullToRefresh = findViewById(R.id.pullToRefresh);
+        pullToRefresh = findViewById(R.id.pullToRefresh);
         pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -170,8 +197,12 @@ public class Profile extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                                 history = task.getResult().getDocuments();
+                                if(mostRecent) {
+                                    history = Lists.reverse(history);
+                                }
+                                createGridView();
                                 getProfilePicture();
-                                getUserInfo((TextView) findViewById(R.id.profile_points));
+                                getUserInfo((TextView) findViewById(R.id.nameText), (TextView) findViewById(R.id.profile_points));
                             }
                         });
                 pullToRefresh.setRefreshing(false);
@@ -203,7 +234,7 @@ public class Profile extends AppCompatActivity {
         } catch (Exception e){}
     }
 
-    public void getUserInfo(final TextView points_text) {
+    public void getUserInfo(final TextView username, final TextView points_text) {
         userDoc.get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -212,6 +243,7 @@ public class Profile extends AppCompatActivity {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
                                 points_text.setText(document.getData().get("points").toString()+" points");
+                                username.setText(FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
                                 font = document.getData().get("font").toString();
                                 if(historyArray != null) {
                                     createGridView();
@@ -230,20 +262,18 @@ public class Profile extends AppCompatActivity {
         historyArray = new Locations[history.size()];
         for(int i=0; i<history.size(); i++) {
             Map ref = history.get(i).getData();
-            historyArray[i] = new Locations( (String)ref.get("name"), new SimpleDateFormat("dd/MM/yyyy").format(new Date()), (String)ref.get("wiki"), (String)ref.get("imgURL"), (Double)ref.get("latitude"), (Double)ref.get("longitude"), (String)ref.get("info"));
-            locationsAdapter = new HistoryLoader(Profile.this, historyArray, font);
-            gridView.setAdapter(locationsAdapter);
+            historyArray[i] = new Locations( (String)ref.get("name"), (String)ref.get("date"), (String) ref.get("time"), (String)ref.get("wiki"), (String)ref.get("imgURL"), (Double)ref.get("latitude"), (Double)ref.get("longitude"), (String)ref.get("info"));
         }
+        locationsAdapter = new HistoryLoader(Profile.this, historyArray, font);
+        gridView.setAdapter(locationsAdapter);
     }
 
     public void getProfilePicture() {
         try {
             Glide.with(this).load(user.getPhotoUrl().toString())
-                    .placeholder(R.drawable.loading_image)
+                    .placeholder(R.mipmap.launcher_icon_round)
                     .into((ImageView) findViewById(R.id.profilePicture));
         } catch (Exception e){
-            ((ImageView) findViewById(R.id.profilePicture)).setImageResource(R.mipmap.launcher_icon_round);
-            ((ImageView) findViewById(R.id.profilePicture)).setBackgroundResource(R.color.transparent);
         }
     }
 

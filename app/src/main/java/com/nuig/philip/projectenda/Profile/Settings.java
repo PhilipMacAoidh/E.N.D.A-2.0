@@ -3,10 +3,11 @@ package com.nuig.philip.projectenda.Profile;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -21,6 +22,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -38,6 +40,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.nuig.philip.projectenda.Challenge_Page.MainActivity;
+import com.nuig.philip.projectenda.Tasks.ChallengeLoader;
 import com.nuig.philip.projectenda.Tasks.InternetConnection;
 import com.nuig.philip.projectenda.Tasks.Toasts;
 import com.nuig.philip.projectenda.R;
@@ -49,22 +52,22 @@ import java.util.UUID;
 
 public class Settings extends AppCompatActivity {
 
-    //todo change to flat settings
-
     private Toolbar toolbar;
     private Uri filePath;
     private ImageView changePPBtn;
-    private boolean photoChanged = false, usernameChanged = false, distanceChanged = false, fontChanged = false, firstRun = true, secondRun = true;
+    private boolean photoChanged = false, usernameChanged = false, distanceChanged = false, fontChanged = false, countryChanged = false, distFirstRun = true, distSecondRun = true, fontFirstRun = true, fontSecondRun = true, countryFirstRun = true, countrySecondRun = true;
     private FirebaseUser user;
     private FirebaseStorage storage;
     private StorageReference storageReference, ref;
     private InternetConnection broadcastReceiver;
     private Button actionBtn;
     private EditText inputUsername;
-    private Spinner distanceSpinner, fontSpinner;
+    private TextView fontTester;
+    private Spinner distanceSpinner, fontSpinner, nationalitySpinner;
     private DocumentReference userDoc;
     private int newDistance;
-    private String newFont;
+    private String newFont, newCountry;
+    private Typeface defaultFont;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,29 +89,104 @@ public class Settings extends AppCompatActivity {
 
         changePPBtn = findViewById(R.id.changePPBtn);
         inputUsername = (EditText) findViewById(R.id.username);
-        inputUsername.addTextChangedListener(usernameFilter);
         distanceSpinner = findViewById(R.id.distanceSpinner);
         fontSpinner = findViewById(R.id.fontSpinner);
+        fontTester = findViewById(R.id.fontTester);
+        defaultFont = fontTester.getTypeface();
+        nationalitySpinner = findViewById(R.id.nationalitySpinner);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.distance_options));
         distanceSpinner.setAdapter(adapter);
+        ArrayAdapter<String> fontAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.font_options));
+        fontSpinner.setAdapter(fontAdapter);
+        ArrayAdapter<String> nationalityAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.countries));
+        nationalitySpinner.setAdapter(nationalityAdapter);
         userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
+                        inputUsername.setText((String) document.getData().get("name"));
+                        inputUsername.addTextChangedListener(usernameFilter);
+
                         switch(Math.round((long) document.getData().get("distance"))) {
-                            case 1: distanceSpinner.setSelection(0); break;
-                            case 2: distanceSpinner.setSelection(1); break;
-                            case 3: distanceSpinner.setSelection(2); break;
-                            case 5: distanceSpinner.setSelection(3); break;
-                            case 10: distanceSpinner.setSelection(4); break;
-                            case 15: distanceSpinner.setSelection(5); break;
-                            case 20: distanceSpinner.setSelection(6); break;
-                            case 25: distanceSpinner.setSelection(7); break;
+                            case 1:
+                                distanceSpinner.setSelection(0);
+                                distSecondRun = false;
+                                break;
+                            case 2:
+                                distanceSpinner.setSelection(1);
+                                break;
+                            case 3:
+                                distanceSpinner.setSelection(2);
+                                break;
+                            case 5:
+                                distanceSpinner.setSelection(3);
+                                break;
+                            case 10:
+                                distanceSpinner.setSelection(4);
+                                break;
+                            case 15:
+                                distanceSpinner.setSelection(5);
+                                break;
+                            case 20:
+                                distanceSpinner.setSelection(6);
+                                break;
+                            case 25:
+                                distanceSpinner.setSelection(7);
+                                break;
                         }
-                        switchToSignOut();
+
+                        switch(document.getData().get("font").toString()) {
+                            case "none":
+                                fontSpinner.setSelection(0);
+                                fontTester.setTypeface(defaultFont);
+                                fontSecondRun = false;
+                                break;
+                            case "friday_vibes":
+                                fontSpinner.setSelection(1);
+                                fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.friday_vibes));
+                                break;
+                            case "modista_script":
+                                fontSpinner.setSelection(2);
+                                fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.modista_script));
+                                break;
+                            case "queenstown_signature":
+                                fontSpinner.setSelection(3);
+                                fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.queenstown_signature));
+                                break;
+                            case "rockness":
+                                fontSpinner.setSelection(4);
+                                fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.rockness));
+                                break;
+                            case "simplicity":
+                                fontSpinner.setSelection(5);
+                                fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.simplicity));
+                                break;
+                        }
+
+                        switch(document.getData().get("country").toString()) {
+                            case "Ireland":
+                                nationalitySpinner.setSelection(0);
+                                countrySecondRun = false;
+                                break;
+                            case "America":
+                                nationalitySpinner.setSelection(1);
+                                break;
+                            case "England":
+                                nationalitySpinner.setSelection(2);
+                                break;
+                            case "Japan":
+                                nationalitySpinner.setSelection(3);
+                                break;
+                            case "Scotland":
+                                nationalitySpinner.setSelection(4);
+                                break;
+                            case "Australia":
+                                nationalitySpinner.setSelection(5);
+                                break;
+                        }
                     } else {
                         Log.d("Settings", "No document found with this userID");
                     }
@@ -117,6 +195,7 @@ public class Settings extends AppCompatActivity {
                 }
             }
         });
+
         distanceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -146,73 +225,98 @@ public class Settings extends AppCompatActivity {
                         newDistance = 25;
                         break;
                 }
-                if (!firstRun) {
-                    distanceChanged = true;
-                    switchToSave();
+                if (!distFirstRun) {
+                    if(!distSecondRun) {
+                        distanceChanged = true;
+                        switchToSave();
+                    }
+                    distSecondRun = false;
                 }else{
                     switchToSignOut();
                 }
-                firstRun = false;
+                distFirstRun = false;
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        ArrayAdapter<String> fontAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.font_options));
-        fontSpinner.setAdapter(fontAdapter);
-        userDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        switch((String)document.getData().get("font")) {
-                            case "none": fontSpinner.setSelection(0); break;
-                            case "friday_vibes": fontSpinner.setSelection(1); break;
-                            case "modista_script": fontSpinner.setSelection(2); break;
-                            case "queenstown_signature": fontSpinner.setSelection(3); break;
-                            case "rockness": fontSpinner.setSelection(4); break;
-                            case "simplicity": fontSpinner.setSelection(5); break;
-                        }
-                        switchToSignOut();
-                    } else {
-                        Log.d("Settings", "No document found with this userID");
-                    }
-                } else {
-                    Log.d("Settings", "get failed with ", task.getException());
-                }
-            }
-        });
         fontSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     switch (position) {
                         case 0:
                             newFont = "none";
+                            fontTester.setTypeface(defaultFont);
                             break;
                         case 1:
                             newFont = "friday_vibes";
+                            fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.friday_vibes));
                             break;
                         case 2:
                             newFont = "modista_script";
+                            fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.modista_script));
                             break;
                         case 3:
                             newFont = "queenstown_signature";
+                            fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.queenstown_signature));
                             break;
                         case 4:
                             newFont = "rockness";
+                            fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.rockness));
                             break;
                         case 5:
-                            newFont = "simplicty";
+                            newFont = "simplicity";
+                            fontTester.setTypeface(ResourcesCompat.getFont(Settings.this, R.font.simplicity));
                             break;
                     }
-                    if (!secondRun) {
+                if (!fontFirstRun) {
+                    if(!fontSecondRun) {
                         fontChanged = true;
                         switchToSave();
-                    }else{
-                        switchToSignOut();;
                     }
-                    secondRun = false;
+                    fontSecondRun = false;
+                }else{
+                    switchToSignOut();
+                }
+                fontFirstRun = false;
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        nationalitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        newCountry = "Ireland";
+                        break;
+                    case 1:
+                        newCountry = "America";
+                        break;
+                    case 2:
+                        newCountry = "England";
+                        break;
+                    case 3:
+                        newCountry = "Japan";
+                        break;
+                    case 4:
+                        newCountry = "Scotland";
+                        break;
+                    case 5:
+                        newCountry = "Australia";
+                        break;
+                }
+                if (!countryFirstRun) {
+                    if(!countrySecondRun) {
+                        countryChanged = true;
+                        switchToSave();
+                    }
+                    countrySecondRun = false;
+                }else{
+                    switchToSignOut();
+                }
+                countryFirstRun = false;
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
@@ -250,20 +354,25 @@ public class Settings extends AppCompatActivity {
                     user.updateProfile(new UserProfileChangeRequest.Builder()
                             .setDisplayName(inputUsername.getText().toString())
                             .build());
+                    userDoc.update("name", inputUsername.getText().toString());
                 }
                 if(distanceChanged) {
                     userDoc.update("distance", newDistance);
+                    new ChallengeLoader(null, true);
                 }
                 if(fontChanged) {
                     userDoc.update("font", newFont);
                 }
-                if (!usernameChanged && !photoChanged && !distanceChanged && !fontChanged) {
+                if(countryChanged) {
+                    userDoc.update("country", newCountry);
+                }
+                if (!usernameChanged && !photoChanged && !distanceChanged && !fontChanged && !countryChanged) {
                     MainActivity.signOut();
                     Toasts.successToast("Goodbye", Settings.this, Toast.LENGTH_SHORT);
                 }
-                if(photoChanged || usernameChanged || distanceChanged || fontChanged) {
+                if(photoChanged || usernameChanged || distanceChanged || fontChanged || countryChanged) {
                     Toasts.successToast(getString(R.string.save_toast_text), Settings.this, Toast.LENGTH_SHORT);
-                    photoChanged = false; usernameChanged = false; distanceChanged = false;
+                    photoChanged = false; usernameChanged = false; distanceChanged = false; fontChanged = false; countryChanged = false;
                     switchToSignOut();
                 }
             }
@@ -348,7 +457,7 @@ public class Settings extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<Uri> task) {
                             if (task.isSuccessful()) {
-
+                                userDoc.update("imgUrl", task.getResult().toString());
                                 UserProfileChangeRequest addImageURL = new UserProfileChangeRequest.Builder()
                                         .setPhotoUri(task.getResult())
                                         .build();
